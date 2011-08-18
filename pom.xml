@@ -62,17 +62,6 @@
             <groupId>org.dataone</groupId>
             <version>1.0</version>
             <type>jar</type>
-            <exclusions>
-            	<exclusion>
-            		<artifactId>commons-codec</artifactId>
-            		<groupId>commons-codec</groupId>
-            	</exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.4</version>
         </dependency>
     </dependencies>
 </project>
