@@ -69,11 +69,11 @@
      <rdf:Description rdf:about="ncsa:cilogon.org,2010:60ab65ef06e31b4391afd976ec2f7269">
        <rdf:type rdf:resource="ncsa:cilogon.org,2010:/1.0/configuration/portal/"/>
        <!-- ***Start customization -->
-       <d:callbackUri rdf:resource="https://cn-dev.test.dataone.org/portal/ready"/>
-       <d:failureUri rdf:resource="https://cn-dev.test.dataone.org/portal/failure"/>
+       <d:callbackUri rdf:resource="https://cn-dev.dataone.org/portal/ready"/>
+       <d:failureUri rdf:resource="https://cn-dev.dataone.org/portal/failure"/>
        <d:portalName>Ben's sample Java delegation portal</d:portalName>
        <d:portalSkin>DataONE</d:portalSkin>
-       <d:successUri rdf:resource="https://cn-dev.test.dataone.org/portal/success"/>
+       <d:successUri rdf:resource="https://cn-dev.dataone.org/portal/success"/>
        <!-- ***End customization -->
      </rdf:Description>
    </c:hasPortalParameters>
