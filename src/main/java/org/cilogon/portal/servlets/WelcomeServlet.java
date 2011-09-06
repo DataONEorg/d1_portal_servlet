@@ -12,11 +12,11 @@ public class WelcomeServlet extends PortalAbstractServlet {
     protected void doIt(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Throwable {
         PrintWriter writer = httpServletResponse.getWriter();
         httpServletResponse.setContentType("text/html");
-        writer.println("<html><head><title>Sample Java Delegation Portal</title></head>");
-        writer.println(" <body><H1>A Sample Java Delegation Portal</h1>");
+        writer.println("<html><head><title>DataONE Authentication</title></head>");
+        writer.println(" <body><h1>DataONE Authentication</h1>");
         // Next line is the important one. Just set the context path and point this to the the startRequest servlet
-        writer.println("<form name=\"input\" action=\"" + httpServletRequest.getContextPath() + "/startRequest\" method=\"get\">");
-        writer.println("Click to request a credential<br><br><input type=\"submit\" value=\"Submit\" />");
-        writer.println("</form></body></html>");
+        writer.println("<a href=\"" + httpServletRequest.getContextPath() + "/startRequest\">");
+        writer.println("Login");
+        writer.println("</a></body></html>");
     }
 }

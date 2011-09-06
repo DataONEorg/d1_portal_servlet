@@ -67,7 +67,7 @@
     </servlet-mapping>
 
     <servlet>
-        <display-name>weclome</display-name>
+        <display-name>welcome</display-name>
         <servlet-name>welcomeServlet</servlet-name>
         <servlet-class>org.cilogon.portal.servlets.WelcomeServlet</servlet-class>
         <load-on-startup>0</load-on-startup>
