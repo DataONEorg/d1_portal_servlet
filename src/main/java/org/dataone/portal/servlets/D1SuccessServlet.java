@@ -49,8 +49,12 @@ public class D1SuccessServlet extends PortalAbstractServlet {
                 "</script>\n" +
                 "<body>\n" +
                 "<h1>Success!</h1>\n" +
-                "<p>You have successfully requested a D1 certificate from the server. It will be accessible for 18 hours using your cookie.</p>\n" +
+                "<p>You have successfully requested a DataONE certificate. It will be accessible for 18 hours using your cookie.</p>\n" +
                 "<ul>\n" +
+                "    <li><a href=\"javascript:unhide('showSubject');\">Show/Hide subject</a></li>\n" +
+                "    <div id=\"showSubject\" class=\"hidden\">\n" +
+                "        <p><pre>" + credential.getX509Certificate().getSubjectDN().toString() + "</pre>\n" +
+                "    </div>\n" +
                 "    <li><a href=\"javascript:unhide('showCert');\">Show/Hide certificate</a></li>\n" +
                 "    <div id=\"showCert\" class=\"unhidden\">\n" +
                 "        <p><pre>" + toPEM(credential.getX509Certificate()) + "</pre>\n" +
@@ -61,9 +65,9 @@ public class D1SuccessServlet extends PortalAbstractServlet {
                 "    </div>\n" +
                 "\n" +
                 "</ul>\n" +
-                "<form name=\"input\" action=" + httpServletRequest.getContextPath() + "/ method=\"get\">\n" +
-                "   <input type=\"submit\" value=\"Return to portal\" />\n" +
-                "</form>" +
+                "<a href=" + httpServletRequest.getContextPath() + ">" +
+                "Return to portal" +
+                "</a>" +
                 "</body>\n" +
                 "</html>";
         pw.println(y);
