@@ -22,9 +22,12 @@ import static edu.uiuc.ncsa.csd.security.KeyUtil.toPKCS1PEM;
 public class D1TestServlet extends PortalAbstractServlet {
     protected void doIt(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Throwable {
         
-        
-        // get the certificate
+        // get the certificate, if we have it
     	X509Certificate certificate = PortalCertificateManager.getInstance().getCertificate(httpServletRequest);
+    	String subject = "NONE FOUND";
+    	if (certificate != null) {
+    		subject = certificate.getSubjectDN().toString();
+    	}
     	
         httpServletResponse.setContentType("text/html");
         PrintWriter pw = httpServletResponse.getWriter();
@@ -43,18 +46,22 @@ public class D1TestServlet extends PortalAbstractServlet {
                 "}\n" +
                 "</script>\n" +
                 "<body>\n" +
-                "<h1>Success!</h1>\n" +
-                "<p>This is the D1 certificate for your cookie.</p>\n" +
+                "<h1>Authentication information</h1>\n" +
+                "<p>This is the DataONE certificate associated with your session.</p>\n" +
                 "<ul>\n" +
-                "    <li><a href=\"javascript:unhide('showCert');\">Show/Hide certificate</a></li>\n" +
-                "    <div id=\"showCert\" class=\"unhidden\">\n" +
-                "        <p><pre>" + toPEM(certificate) + "</pre>\n" +
-                "    </div>\n" +
-                "    <li><a href=\"javascript:unhide('showKey');\">Show/Hide private key</a></li>\n" +
-                "    <div id=\"showKey\" class=\"hidden\">\n" +
-                "        <p><pre>" + "NOTHING" + "</pre>\n" +
-                "    </div>\n" +
-                "\n" +
+                "    <li><a href=\"javascript:unhide('showKey');\">Show/Hide subject</a></li>\n" +
+                "    <div id=\"showKey\" class=\"unhidden\">\n" +
+                "        <p><pre>" + subject + "</pre>\n" +
+                "    </div>\n";
+                
+        		if (certificate != null) {
+	                y += "    <li><a href=\"javascript:unhide('showCert');\">Show/Hide certificate</a></li>\n" +
+	                "    <div id=\"showCert\" class=\"hidden\">\n" +
+	                "        <p><pre>" + toPEM(certificate) + "</pre>\n" +
+	                "    </div>\n";
+        		}
+                
+                y += "\n" +
                 "</ul>\n" +
                 "<form name=\"input\" action=" + httpServletRequest.getContextPath() + "/ method=\"get\">\n" +
                 "   <input type=\"submit\" value=\"Return to portal\" />\n" +

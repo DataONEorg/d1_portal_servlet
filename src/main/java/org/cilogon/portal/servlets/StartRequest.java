@@ -27,6 +27,10 @@ public class StartRequest extends PortalAbstractServlet {
         if (identifier == null) {
             identifier = "id-" + System.nanoTime();
         }
+        String target = request.getParameter("target");
+        if (target != null) {
+            request.getSession().setAttribute("target", target);
+        }
         // Set the cookie
         debug("2.a. Adding cookie for identifier = " + identifier);
         Cookie cookie = new Cookie(CERT_REQUEST_ID, identifier);
