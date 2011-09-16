@@ -66,18 +66,6 @@
         <url-pattern>/failure</url-pattern>
     </servlet-mapping>
 
-    <servlet>
-        <display-name>welcome</display-name>
-        <servlet-name>welcomeServlet</servlet-name>
-        <servlet-class>org.cilogon.portal.servlets.WelcomeServlet</servlet-class>
-        <load-on-startup>0</load-on-startup>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>welcomeServlet</servlet-name>
-        <url-pattern>/</url-pattern>
-    </servlet-mapping>
-
-
     <!--
        The next section should be uncommented if you install the portal to
        Tomcat as a stand-alone application, i.e., there is no Apache
@@ -133,6 +121,12 @@
        <param-name>org.cilogon.config.portal</param-name>
        <param-value>/var/lib/tomcat6/webapps/portal/WEB-INF/cfg.rdf</param-value>
    </context-param>
+   
+	<context-param>
+		<param-name>org.cilogon.debug.server</param-name>
+		<param-value>https://test.cilogon.org</param-value>
+	</context-param>
+   
     <!--
     Specify the name of the configuration within the configuration file, if needed. Default behavior
     is to assume that there is exactly on in  the file one and use that if
