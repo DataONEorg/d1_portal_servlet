@@ -54,6 +54,18 @@
         <url-pattern>/test</url-pattern>
     </servlet-mapping>
 
+	<servlet>
+        <description>Servlet to edit account info</description>
+        <display-name>identity</display-name>
+        <servlet-name>identity</servlet-name>
+        <servlet-class>org.dataone.portal.servlets.IdentityServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>identity</servlet-name>
+        <url-pattern>/identity</url-pattern>
+    </servlet-mapping>
+    
     <servlet>
         <description>failure page</description>
         <display-name>failure</display-name>
