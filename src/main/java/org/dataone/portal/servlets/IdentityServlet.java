@@ -73,6 +73,7 @@ public class IdentityServlet extends HttpServlet {
 				person.setFamilyName(familyName);
 				person.addEmail(email);
 				person.addGivenName(givenName);
+				person.setSubject(subject);
 				// register
 				Subject retSubject = D1Client.getCN().registerAccount(session, person);
 				msg = "Account registered: " + retSubject.getValue();
@@ -86,6 +87,7 @@ public class IdentityServlet extends HttpServlet {
 				person.setFamilyName(familyName);
 				person.addEmail(email);
 				person.addGivenName(givenName);
+				person.setSubject(subject);
 				// update
 				Subject retSubject = D1Client.getCN().updateAccount(session, person);
 				msg = "Account updated: " + retSubject.getValue();
