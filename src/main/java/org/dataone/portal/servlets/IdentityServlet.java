@@ -102,29 +102,10 @@ public class IdentityServlet extends HttpServlet {
 				msg = "Account verified: " + subjectToVerify.getValue();
 	    	}
 	    	
-		} catch (ServiceFailure e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IdentifierNotUnique e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidCredentials e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NotImplemented e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidRequest e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidToken e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NotAuthorized e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+			// print to response while debugging
+			e.printStackTrace(response.getWriter());
 		}
-		
 		
 		// write the response
         response.setContentType("text/html");
