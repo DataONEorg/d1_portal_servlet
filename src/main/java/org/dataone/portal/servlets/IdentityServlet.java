@@ -33,11 +33,18 @@ public class IdentityServlet extends HttpServlet {
 		}
 	}
 	
+	
     public void doGet(HttpServletRequest request, HttpServletResponse response)
     	throws ServletException, IOException {
-    	
+    	// use the same method
+    	handleRequest(request, response);	
     }
-	public void doPost(HttpServletRequest request, HttpServletResponse response)
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
+	throws ServletException, IOException {
+    	// use the same method
+    	handleRequest(request, response);
+    }
+	public void handleRequest(HttpServletRequest request, HttpServletResponse response)
     	throws ServletException, IOException {
 		
 		 // get the certificate, if we have it
