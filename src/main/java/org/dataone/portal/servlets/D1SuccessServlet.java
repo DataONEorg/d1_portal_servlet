@@ -32,6 +32,9 @@ public class D1SuccessServlet extends PortalAbstractServlet {
     	// find where we should end up
     	String target = (String) request.getSession().getAttribute("target");
     	if (target != null) {
+    		// remove from the session once we use it
+    		request.getSession().removeAttribute("target");
+    		// send the redirect
     		response.sendRedirect(target);
     		return;
     	}

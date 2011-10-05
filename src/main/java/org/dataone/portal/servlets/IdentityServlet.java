@@ -115,6 +115,11 @@ public class IdentityServlet extends HttpServlet {
 				D1Client.getCN().confirmMapIdentity(session, subjectToMap);
 				msg = "Account map confirmed for: " + subjectToMap.getValue();
 	    	}
+	    	if (action.equalsIgnoreCase("logout")) {
+	    		// remove the cookie for D1
+	        	PortalCertificateManager.getInstance().removeCookie(response);
+				msg = "Logout successful for: " + subject.getValue();
+	    	}
 	    	
 		} catch (Exception e) {
 			// print to response while debugging
