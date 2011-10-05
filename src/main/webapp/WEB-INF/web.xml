@@ -138,6 +138,12 @@
 		<param-name>org.cilogon.debug.server</param-name>
 		<param-value>https://test.cilogon.org</param-value>
 	</context-param>
+	
+	<!-- override the CN URL for DataONE -->
+	<context-param>
+		<param-name>D1Client.CN_URL</param-name>
+		<param-value>https://cn-dev.dataone.org/cn</param-value>
+	</context-param>
    
     <!--
     Specify the name of the configuration within the configuration file, if needed. Default behavior

@@ -1,41 +1,37 @@
 package org.dataone.portal.servlets;
 
-import org.cilogon.portal.CILogonService;
-import org.cilogon.portal.servlets.PortalAbstractServlet;
-import org.cilogon.portal.util.PortalCredentials;
-import org.cilogon.util.CILogon;
-import org.dataone.client.D1Client;
-import org.dataone.client.auth.CertificateManager;
-import org.dataone.portal.PortalCertificateManager;
-import org.dataone.service.exceptions.IdentifierNotUnique;
-import org.dataone.service.exceptions.InvalidCredentials;
-import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidToken;
-import org.dataone.service.exceptions.NotAuthorized;
-import org.dataone.service.exceptions.NotImplemented;
-import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.types.v1.Person;
-import org.dataone.service.types.v1.Session;
-import org.dataone.service.types.v1.Subject;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
-import static edu.uiuc.ncsa.csd.security.CertUtil.toPEM;
-import static edu.uiuc.ncsa.csd.security.KeyUtil.toPKCS1PEM;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.dataone.client.D1Client;
+import org.dataone.client.auth.CertificateManager;
+import org.dataone.configuration.Settings;
+import org.dataone.portal.PortalCertificateManager;
+import org.dataone.service.types.v1.Person;
+import org.dataone.service.types.v1.Session;
+import org.dataone.service.types.v1.Subject;
 
 /**
  * <p>Created by Ben Leinfelder<br>
  */
 public class IdentityServlet extends HttpServlet {
+	
+	public void init(ServletConfig config) throws ServletException {
+		super.init(config);
+		// set the CN URL based on the context param
+		String cnURL = config.getServletContext().getInitParameter("D1Client.CN_URL");
+		if (cnURL != null) {
+			Settings.getConfiguration().setProperty("D1Client.CN_URL", cnURL);
+		}
+	}
 	
     public void doGet(HttpServletRequest request, HttpServletResponse response)
     	throws ServletException, IOException {
