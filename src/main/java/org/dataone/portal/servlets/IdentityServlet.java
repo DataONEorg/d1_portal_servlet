@@ -97,6 +97,24 @@ public class IdentityServlet extends HttpServlet {
 				D1Client.getCN().verifyAccount(session, subjectToVerify);
 				msg = "Account verified: " + subjectToVerify.getValue();
 	    	}
+	    	if (action.equalsIgnoreCase("mapIdentity")) {
+	    		// gather the information needed for this method
+		    	String subjectParam = request.getParameterValues("subject")[0];
+				Subject subjectToMap = new Subject();
+				subjectToMap.setValue(subjectParam);
+				// verify
+				D1Client.getCN().mapIdentity(session, subjectToMap);
+				msg = "Account map requested for: " + subjectToMap.getValue();
+	    	}
+	    	if (action.equalsIgnoreCase("confirmMapIdentity")) {
+	    		// gather the information needed for this method
+		    	String subjectParam = request.getParameterValues("subject")[0];
+				Subject subjectToMap = new Subject();
+				subjectToMap.setValue(subjectParam);
+				// verify
+				D1Client.getCN().confirmMapIdentity(session, subjectToMap);
+				msg = "Account map confirmed for: " + subjectToMap.getValue();
+	    	}
 	    	
 		} catch (Exception e) {
 			// print to response while debugging
