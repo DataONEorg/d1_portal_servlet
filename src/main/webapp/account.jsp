@@ -8,12 +8,33 @@
 <head>
 <title>DataONE Portal Registration</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<script src="jquery/jquery-1.6.4.min.js"></script>
+<script type="text/javascript">
+
+function makeAjaxCall(url, formId) {
+	$('#result').load(
+		url, //url
+		$("#" + formId).serialize(), //data
+		function(response, status, xhr) {
+			if (status == "error") {
+				var msg = "Sorry but there was an error: ";
+				$("#error").html(msg + xhr.status + " " + xhr.statusText);
+			}
+		}
+	);
+}
+
+</script>
 </head>
 <body>
 
+<!-- load AJAX results here -->
+<div id="result"/>
+<div id="error"/>
+
 <div id="main">
 	<h1>DataONE Account Management</h1>
-	Logged in as: <%=subject.getValue() %>
+	Logged in as: (<%=subject.getValue() %>)
 	<br/>
 	<a href="<%=request.getContextPath()%>/startRequest?target=<%=request.getContextPath()%>/account.jsp">Begin Login</a>
 	<br/>
@@ -24,11 +45,11 @@
 <div id="register">
 	<h1>Account Details</h1>
 	<form action="<%=request.getContextPath()%>/identity" method="POST">
-		Given Name: <input type="text" name="givenName" value="">
+		Given Name: <input type="text" name="givenName" value="<%=person != null ? person.getGivenName(0) : null %>">
 		<br/>
-		Family Name: <input type="text" name="familyName">
+		Family Name: <input type="text" name="familyName" value="<%=person != null ? person.getFamilyName() : null %>">
 		<br/>
-		Email: <input type="text" name="email">
+		Email: <input type="text" name="email" value="<%=person != null ? person.getEmail(0) : null %>">
 		<br/>
 		<input type="hidden" name="action" value="TBD">
 		<input type="button" value="Register" onclick="form.action.value='registerAccount'; form.submit();">
