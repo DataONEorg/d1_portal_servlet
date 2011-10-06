@@ -1,4 +1,7 @@
-<%@page language="java"%>
+
+<%@page import="org.dataone.service.types.v1.Person"%>
+<%@page import="org.dataone.service.types.v1.SubjectList"%>
+<%@page import="org.dataone.client.D1Client"%><%@page language="java"%>
 <%@page import="org.dataone.service.types.v1.Subject"%>
 <%@page import="org.dataone.service.types.v1.Session"%>
 <%@page import="org.dataone.client.auth.CertificateManager"%>
@@ -20,5 +23,9 @@ Session d1Session = new Session();
 Subject subject = new Subject();
 subject.setValue(subjectDN);
 d1Session.setSubject(subject);
+
+// look up the details about the person represented by the subject
+SubjectList subjectInfo = D1Client.getCN().getSubjectInfo(d1Session, subject);
+Person person = subjectInfo.getPerson(0);
 
 %>
