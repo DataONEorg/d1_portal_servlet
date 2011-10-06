@@ -51,6 +51,7 @@ function makeAjaxCall(url, formId) {
 		<br/>
 		Email: <input type="text" name="email" value="<%=person != null ? person.getEmail(0) : null %>">
 		<br/>
+		<input type="hidden" name="subject" value="<%=subject.getValue() %>">
 		<input type="hidden" name="action" value="TBD">
 		<input type="button" value="Register" onclick="form.action.value='registerAccount'; form.submit();">
 		<input type="button" value="Update" onclick="form.action.value='updateAccount'; form.submit();">
