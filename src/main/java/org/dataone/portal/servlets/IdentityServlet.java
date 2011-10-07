@@ -18,6 +18,7 @@ import org.dataone.portal.PortalCertificateManager;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v1.SubjectList;
 
 /**
  * <p>Created by Ben Leinfelder<br>
@@ -62,7 +63,7 @@ public class IdentityServlet extends HttpServlet {
 		session.setSubject(subject);
 
 		// process the action accordingly
-    	String action = request.getParameterValues("action")[0];
+    	String action = request.getParameter("action");
     	String msg = null;
     	
     	try {
@@ -70,7 +71,7 @@ public class IdentityServlet extends HttpServlet {
 	    	if (action.equalsIgnoreCase("registerAccount")) {
 	    		// gather the information needed for this method
 		    	Person person = new Person();
-		    	String familyName = request.getParameterValues("familyName")[0];
+		    	String familyName = request.getParameter("familyName");
 		    	String givenName = request.getParameterValues("givenName")[0];
 		    	String email = request.getParameterValues("email")[0];
 				person.setFamilyName(familyName);
@@ -84,7 +85,7 @@ public class IdentityServlet extends HttpServlet {
 	    	if (action.equalsIgnoreCase("updateAccount")) {
 	    		// gather the information needed for this method
 		    	Person person = new Person();
-		    	String familyName = request.getParameterValues("familyName")[0];
+		    	String familyName = request.getParameter("familyName");
 		    	String givenName = request.getParameterValues("givenName")[0];
 		    	String email = request.getParameterValues("email")[0];
 				person.setFamilyName(familyName);
@@ -97,7 +98,7 @@ public class IdentityServlet extends HttpServlet {
 	    	}
 	    	if (action.equalsIgnoreCase("verifyAccount")) {
 	    		// gather the information needed for this method
-		    	String subjectParam = request.getParameterValues("subject")[0];
+		    	String subjectParam = request.getParameter("subject");
 				Subject subjectToVerify = new Subject();
 				subjectToVerify.setValue(subjectParam);
 				// verify
@@ -106,7 +107,7 @@ public class IdentityServlet extends HttpServlet {
 	    	}
 	    	if (action.equalsIgnoreCase("mapIdentity")) {
 	    		// gather the information needed for this method
-		    	String subjectParam = request.getParameterValues("subject")[0];
+		    	String subjectParam = request.getParameter("subject");
 				Subject subjectToMap = new Subject();
 				subjectToMap.setValue(subjectParam);
 				// verify
@@ -115,13 +116,66 @@ public class IdentityServlet extends HttpServlet {
 	    	}
 	    	if (action.equalsIgnoreCase("confirmMapIdentity")) {
 	    		// gather the information needed for this method
-		    	String subjectParam = request.getParameterValues("subject")[0];
+		    	String subjectParam = request.getParameter("subject");
 				Subject subjectToMap = new Subject();
 				subjectToMap.setValue(subjectParam);
 				// verify
 				D1Client.getCN().confirmMapIdentity(session, subjectToMap);
 				msg = "Account map confirmed for: " + subjectToMap.getValue();
 	    	}
+	    	if (action.equalsIgnoreCase("createGroup")) {
+	    		// gather the information needed for this method
+		    	String groupNameParam = request.getParameter("groupName");
+		    	Subject groupName = new Subject();
+		    	groupName.setValue(groupNameParam);
+				Subject retSubject = D1Client.getCN().createGroup(session, groupName);
+				msg = "Group created: " + retSubject.getValue();
+	    	}
+	    	if (action.equalsIgnoreCase("addGroupMembers")) {
+	    		// gather the information needed for this method
+	    		String groupNameParam = request.getParameter("groupName");
+		    	Subject groupName = new Subject();
+		    	groupName.setValue(groupNameParam);
+	    		String[] membersParam = request.getParameterValues("members");
+				SubjectList members = new SubjectList();
+	    		for (String m: membersParam) {
+	    			Subject memberSubject = new Subject();
+	    			memberSubject.setValue(m);
+	    			Person member = null;
+	    			// TODO: look up the person details from the group?
+	    			//SubjectList memberInfo = D1Client.getCN().getSubjectInfo(session, memberSubject);
+	    			//member = memberInfo.getPerson(0);
+    				member = new Person();
+	    			member.setSubject(memberSubject);
+					members.addPerson(member);
+	    		}
+				boolean result = D1Client.getCN().addGroupMembers(session, groupName, members);
+				msg = "Members added to group: " + groupName.getValue();
+	    	}
+	    	if (action.equalsIgnoreCase("removeGroupMembers")) {
+	    		// gather the information needed for this method
+	    		String groupNameParam = request.getParameter("groupName");
+		    	Subject groupName = new Subject();
+		    	groupName.setValue(groupNameParam);
+	    		String[] membersParam = request.getParameterValues("members");
+				SubjectList members = new SubjectList();
+	    		for (String m: membersParam) {
+	    			Subject memberSubject = new Subject();
+	    			memberSubject.setValue(m);
+	    			Person member = null;
+	    			// TODO: look up the person details from the group?
+	    			//SubjectList memberInfo = D1Client.getCN().getSubjectInfo(session, memberSubject);
+	    			//member = memberInfo.getPerson(0);
+    				member = new Person();
+	    			member.setSubject(memberSubject);
+					members.addPerson(member);
+	    		}
+				boolean result = D1Client.getCN().removeGroupMembers(session, groupName, members);
+				msg = "Members removed from group: " + groupName.getValue();
+	    	}
+	    	
+	    	
+	    	
 	    	if (action.equalsIgnoreCase("logout")) {
 	    		// remove the cookie for D1
 	        	PortalCertificateManager.getInstance().removeCookie(response);
@@ -133,16 +187,25 @@ public class IdentityServlet extends HttpServlet {
 			e.printStackTrace(response.getWriter());
 		}
 		
+		// is there a non-empty target URL to redirect to?
+		String target = request.getParameter("target");
+		if (target != null && target.length() > 0) {
+			response.sendRedirect(target);
+			return;
+		}
+		
 		// write the response
         response.setContentType("text/html");
         PrintWriter pw = response.getWriter();
-        String y = "<html>\n" +
+        String html = "<html>\n" +
                 "<body>\n" +
                 "<h1>Results</h1>\n" +
-                "<p>" + msg + "</p>\n" +
+                "<p>" + msg + "</p>" +
                 "</body>\n" +
                 "</html>";
-        pw.println(y);
+        //pw.println(html);
+        // just print the plain text for AJAX
+        pw.println(msg);
         pw.flush();
     }
 }

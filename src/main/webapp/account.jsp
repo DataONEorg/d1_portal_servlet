@@ -43,7 +43,7 @@ function init() {
 <div id="register">
 	<h1>DataONE Account Details</h1>
 
-	<form action="<%=request.getContextPath()%>/identity" method="POST">
+	<form action="<%=request.getContextPath()%>/identity" method="POST" id="accountForm">
 		<table>
 			<tr>
 				<td>Logged in as</td>
@@ -67,18 +67,22 @@ function init() {
 			</tr>
 			<tr>
 				<td colspan="2">
-					<input type="hidden" name="subject" value="<%=subject.getValue() %>">
-					<input type="hidden" name="action" value="TBD">
+					<input type="hidden" name="subject" value="<%=subject.getValue() %>"/>
+					<input type="hidden" name="target" value="<%=request.getContextPath()%>/account.jsp"/>
+					<input type="hidden" name="action" value="TBD"/>
 					<%
 					// only show the register button when it makes sense
 					if (person == null) {
 					%>
+						<!-- re-diret to this page when done registering -->
 						<input type="button" value="Register" onclick="form.action.value='registerAccount'; form.submit();">
 					<%
 					} else {
 					%>
 						<input type="button" value="Update" onclick="form.action.value='updateAccount'; form.submit();">
-						<input type="button" value="Verify" onclick="form.action.value='verifyAccount'; form.submit();">
+						<!-- just show the results in an AJAX section -->
+						<input type="button" value="Verify" 
+						onclick="form.action.value='verifyAccount'; form.target.value=''; makeAjaxCall('<%=request.getContextPath()%>/identity', 'accountForm', 'result'); form.target.value='<%=request.getContextPath()%>/account.jsp';">
 					<%
 					}
 					%>
