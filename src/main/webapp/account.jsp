@@ -45,17 +45,27 @@ function makeAjaxCall(url, formId) {
 <div id="register">
 	<h1>Account Details</h1>
 	<form action="<%=request.getContextPath()%>/identity" method="POST">
-		Given Name: <input type="text" name="givenName" value="<%=person != null ? person.getGivenName(0) : null %>">
+		Given Name: <input type="text" name="givenName" value="<%=person != null ? person.getGivenName(0) : "" %>">
 		<br/>
-		Family Name: <input type="text" name="familyName" value="<%=person != null ? person.getFamilyName() : null %>">
+		Family Name: <input type="text" name="familyName" value="<%=person != null ? person.getFamilyName() : "" %>">
 		<br/>
-		Email: <input type="text" name="email" value="<%=person != null ? person.getEmail(0) : null %>">
+		Email: <input type="text" name="email" value="<%=person != null ? person.getEmail(0) : "" %>">
 		<br/>
 		<input type="hidden" name="subject" value="<%=subject.getValue() %>">
 		<input type="hidden" name="action" value="TBD">
-		<input type="button" value="Register" onclick="form.action.value='registerAccount'; form.submit();">
-		<input type="button" value="Update" onclick="form.action.value='updateAccount'; form.submit();">
-		<input type="button" value="Verify" onclick="form.action.value='verifyAccount'; form.submit();">
+		<%
+		// only show the register button when it makes sense
+		if (person == null) {
+		%>
+			<input type="button" value="Register" onclick="form.action.value='registerAccount'; form.submit();">
+		<%
+		} else {
+		%>
+			<input type="button" value="Update" onclick="form.action.value='updateAccount'; form.submit();">
+			<input type="button" value="Verify" onclick="form.action.value='verifyAccount'; form.submit();">
+		<%
+		}
+		%>
 	</form>
 </div>
 

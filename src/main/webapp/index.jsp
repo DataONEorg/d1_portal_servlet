@@ -6,6 +6,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 </head>
 <body>
-<a href="<%=request.getContextPath()%>/startRequest?target=<%=request.getContextPath()%>/test">Begin Login</a>
+<a href="<%=request.getContextPath()%>/startRequest?target=<%=request.getContextPath()%>/account.jsp">Begin Login</a>
 </body>
 </html>
