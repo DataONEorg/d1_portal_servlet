@@ -13,6 +13,12 @@
 // get the certificate, if we have it
 X509Certificate certificate = PortalCertificateManager.getInstance().getCertificate(request);
 PrivateKey key = PortalCertificateManager.getInstance().getPrivateKey(request);
+
+// if we don't have a certificate, then we aren't logged in
+if (certificate == null) {
+	response.sendRedirect(request.getContextPath());
+}
+// carry on if we have a certificate
 String subjectDN = CertificateManager.getInstance().getSubjectDN(certificate);
 
 // set in the D1client/CertMan
@@ -24,8 +30,13 @@ Subject subject = new Subject();
 subject.setValue(subjectDN);
 d1Session.setSubject(subject);
 
-// look up the details about the person represented by the subject
-SubjectList subjectInfo = D1Client.getCN().getSubjectInfo(d1Session, subject);
-Person person = subjectInfo.getPerson(0);
+// look up the details about the person represented by the subject, if possible
+Person person = null;
+try {
+	SubjectList subjectInfo = D1Client.getCN().getSubjectInfo(d1Session, subject);
+	person = subjectInfo.getPerson(0);
+} catch (Exception e) {
+	// ignore this for now...
+}
 
 %>
