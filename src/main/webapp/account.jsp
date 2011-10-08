@@ -11,7 +11,7 @@
 <script src="jquery/jquery-1.6.4.min.js"></script>
 <script type="text/javascript">
 
-function makeAjaxCall(url, formId, divId) {
+function makeAjaxCall(url, formId, divId, callback) {
 	$('#' + divId).load(
 		url, //url
 		$("#" + formId).serialize(), //data
@@ -20,28 +20,39 @@ function makeAjaxCall(url, formId, divId) {
 				var msg = "Sorry but there was an error: ";
 				$("#error").html(msg + xhr.status + " " + xhr.statusText);
 			}
+			// call the callback
+			if (callback) {
+				setTimeout(callback, 0);
+			}
 		}
 	);
 }
-function listSubjects() {
-	makeAjaxCall("listSubjects.jsp", "equivalentIdentities", "subject");
+function listPeople() {
+	makeAjaxCall("listPeople.jsp", "equivalentIdentities", "subject");
 }
-function listMemberSubjects() {
-	makeAjaxCall("listSubjects.jsp", "groupForm", "members");
-}
+// the groups
 function listGroups() {
-	makeAjaxCall("listGroups.jsp", "groupForm", "groupName");
+	makeAjaxCall("listGroups.jsp", "editGroupForm", "groupName", "listCurrentMembers()");
+}
+// the current members
+function listCurrentMembers() {
+	makeAjaxCall("subjectInfo.jsp", "editGroupForm", "currentMembers");
+}
+// all potential members
+function listPotentialMembers() {
+	makeAjaxCall("listPeople.jsp", "editGroupForm", "potentialMembers");
 }
 
 function init() {
-	// list all the subjects
-	listSubjects();
-	
-	// list all possible members
-	listMemberSubjects();
+	// equivalent identities
+	listPeople();
 
-	// list existing groups
+	//  groups
 	listGroups();
+	listPotentialMembers();
+	// skip this and let the callback do it when the groups are loaded
+	//listCurrentMembers();
+	
 }
 
 </script>
@@ -110,7 +121,7 @@ function init() {
 		<table>
 			<tr>
 				<td>Search</td>
-				<td><input type="text" name="query" onkeyup="listSubjects()"></td>
+				<td><input type="text" name="query" onkeyup="listPeople()"></td>
 			</tr>
 			<tr>
 				<td>Select</td>
@@ -136,7 +147,7 @@ function init() {
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="createGroupForm">
 		<table>
 			<tr>
-				<td>Group name</td>
+				<td>Create Group</td>
 				<td><input type="text" name="groupName"></td>
 				<td>
 					<!--  <input type="hidden" name="target" value="<%=request.getContextPath()%>/account.jsp"/> -->
@@ -147,35 +158,45 @@ function init() {
 		</table>
 	</form>
 
-	<form action="<%=request.getContextPath()%>/identity" method="POST" id="groupForm">
+	<h2>Edit Groups</h2>
+
+	<!-- edit a group -->
+	<form action="<%=request.getContextPath()%>/identity" method="POST" id="editGroupForm">
 		<table>
 			<tr>
-				<td>Group name</td>
+				<td>Select Group</td>
 				<td>
-					<select name="groupName" id="groupName">
+					<select name="groupName" id="groupName" onchange="listCurrentMembers()">
+						<option>None Selected</option>
 					</select>
-				</td>
-			</tr>
-			<tr>
-				<td>Search</td>
-				<td><input type="text" name="query" onkeyup="listMemberSubjects()"></td>
-			</tr>
-			<tr>
-				<td>Select</td>
-				<td>
-					<select name="members" size="5" id="members" multiple="multiple">
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<td colspan="2">
 					<input type="hidden" name="action" value="TBD">
-					<input type="button" value="Add to group" onclick="form.action.value='addGroupMembers'; form.submit();">
-					<input type="button" value="Remove from group" onclick="form.action.value='removeGroupMembers'; form.submit();">
+				</td>
+			</tr>
+			<tr>
+				<td>Current members</td>
+				<td>
+					<select name="members" size="5" id="currentMembers" multiple="multiple"></select>
+				</td>
+				<td>
+					<input type="button" value="Remove selected" onclick="form.action.value='removeGroupMembers'; form.submit();">
+				</td>
+			</tr>
+			<tr>
+				<td>Find People</td>
+				<td><input type="text" name="query" onkeyup="listPotentialMembers()"></td>
+			</tr>
+			<tr>
+				<td>Add members</td>
+				<td>
+					<select name="members" size="5" id="potentialMembers" multiple="multiple"></select>
+				</td>
+				<td>
+					<input type="button" value="Add selected" onclick="form.action.value='addGroupMembers'; form.submit();">
 				</td>
 			</tr>
 		</table>
 	</form>
+
 </div>
 
 </body>
