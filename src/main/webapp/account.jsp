@@ -24,13 +24,13 @@ function makeAjaxCall(url, formId, divId) {
 	);
 }
 function listSubjects() {
-	makeAjaxCall("subjects.jsp", "equivalentIdentities", "subject");
+	makeAjaxCall("listSubjects.jsp", "equivalentIdentities", "subject");
 }
 function listMemberSubjects() {
-	makeAjaxCall("subjects.jsp", "groupForm", "members");
+	makeAjaxCall("listSubjects.jsp", "groupForm", "members");
 }
 function listGroups() {
-	makeAjaxCall("groups.jsp", "groupForm", "groupName");
+	makeAjaxCall("listGroups.jsp", "groupForm", "groupName");
 }
 
 function init() {
