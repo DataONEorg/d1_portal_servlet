@@ -29,6 +29,9 @@ function listSubjects() {
 function listMemberSubjects() {
 	makeAjaxCall("subjects.jsp", "groupForm", "members");
 }
+function listGroups() {
+	makeAjaxCall("groups.jsp", "groupForm", "groupName");
+}
 
 function init() {
 	// list all the subjects
@@ -36,6 +39,9 @@ function init() {
 	
 	// list all possible members
 	listMemberSubjects();
+
+	// list existing groups
+	listGroups();
 }
 
 </script>
@@ -127,7 +133,7 @@ function init() {
 <div id="groups">
 	<h1>Group Management</h1>
 	<!-- create a group -->
-	<form action="<%=request.getContextPath()%>/identity" method="POST" id="addGroupForm">
+	<form action="<%=request.getContextPath()%>/identity" method="POST" id="createGroupForm">
 		<table>
 			<tr>
 				<td>Group name</td>
