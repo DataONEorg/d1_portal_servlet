@@ -26,10 +26,16 @@ function makeAjaxCall(url, formId, divId) {
 function listSubjects() {
 	makeAjaxCall("subjects.jsp", "equivalentIdentities", "subject");
 }
+function listMemberSubjects() {
+	makeAjaxCall("subjects.jsp", "groupForm", "members");
+}
 
 function init() {
 	// list all the subjects
 	listSubjects();
+	
+	// list all possible members
+	listMemberSubjects();
 }
 
 </script>
@@ -99,6 +105,7 @@ function init() {
 			<tr>
 				<td>Search</td>
 				<td><input type="text" name="query" onkeyup="listSubjects()"></td>
+			</tr>
 			<tr>
 				<td>Select</td>
 				<td>
@@ -119,6 +126,50 @@ function init() {
 
 <div id="groups">
 	<h1>Group Management</h1>
+	<!-- create a group -->
+	<form action="<%=request.getContextPath()%>/identity" method="POST" id="addGroupForm">
+		<table>
+			<tr>
+				<td>Group name</td>
+				<td><input type="text" name="groupName"></td>
+				<td>
+					<!--  <input type="hidden" name="target" value="<%=request.getContextPath()%>/account.jsp"/> -->
+					<input type="hidden" name="action" value="createGroup">
+					<input type="button" value="Create" onclick="form.action.value='createGroup'; form.submit();">
+				</td>
+			</tr>
+		</table>
+	</form>
+
+	<form action="<%=request.getContextPath()%>/identity" method="POST" id="groupForm">
+		<table>
+			<tr>
+				<td>Group name</td>
+				<td>
+					<select name="groupName" id="groupName">
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Search</td>
+				<td><input type="text" name="query" onkeyup="listMemberSubjects()"></td>
+			</tr>
+			<tr>
+				<td>Select</td>
+				<td>
+					<select name="members" size="5" id="members" multiple="multiple">
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<input type="hidden" name="action" value="TBD">
+					<input type="button" value="Add to group" onclick="form.action.value='addGroupMembers'; form.submit();">
+					<input type="button" value="Remove from group" onclick="form.action.value='removeGroupMembers'; form.submit();">
+				</td>
+			</tr>
+		</table>
+	</form>
 </div>
 
 </body>
