@@ -142,11 +142,9 @@ public class IdentityServlet extends HttpServlet {
 	    			Subject memberSubject = new Subject();
 	    			memberSubject.setValue(m);
 	    			Person member = null;
-	    			// TODO: look up the person details from the group?
-	    			//SubjectList memberInfo = D1Client.getCN().getSubjectInfo(session, memberSubject);
-	    			//member = memberInfo.getPerson(0);
-    				member = new Person();
-	    			member.setSubject(memberSubject);
+	    			// look up the person details from the group?
+	    			SubjectList memberInfo = D1Client.getCN().getSubjectInfo(session, memberSubject);
+	    			member = memberInfo.getPerson(0);
 					members.addPerson(member);
 	    		}
 				boolean result = D1Client.getCN().addGroupMembers(session, groupName, members);
@@ -163,11 +161,9 @@ public class IdentityServlet extends HttpServlet {
 	    			Subject memberSubject = new Subject();
 	    			memberSubject.setValue(m);
 	    			Person member = null;
-	    			// TODO: look up the person details from the group?
-	    			//SubjectList memberInfo = D1Client.getCN().getSubjectInfo(session, memberSubject);
-	    			//member = memberInfo.getPerson(0);
-    				member = new Person();
-	    			member.setSubject(memberSubject);
+	    			// look up the person details from the group?
+	    			SubjectList memberInfo = D1Client.getCN().getSubjectInfo(session, memberSubject);
+	    			member = memberInfo.getPerson(0);
 					members.addPerson(member);
 	    		}
 				boolean result = D1Client.getCN().removeGroupMembers(session, groupName, members);
