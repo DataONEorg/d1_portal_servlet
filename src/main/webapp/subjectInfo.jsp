@@ -19,9 +19,12 @@
 		// include the Groups
 		for (Group g: subjectList.getGroupList()) {
 	%>
+			<!-- do not show the group we came from -->
+			<!-- 
 			<option value="<%=g.getSubject().getValue()%>">
 				<%=g.getGroupName()%> (<%=g.getSubject().getValue()%>)
-			</option>				
+			</option>		
+			-->		
 	<%
 			// add the group members
 			if (g.getHasMemberList() != null) {
@@ -42,6 +45,16 @@
 				<%=p.getFamilyName()%> (<%=p.getSubject().getValue()%>)
 			</option>				
 	<%
+			// add the groups we are a member of
+			if (p.getIsMemberOfList() != null) {
+				for (Subject g: p.getIsMemberOfList()) {
+				%>
+					<option value="<%=g.getValue()%>">
+						(<%=g.getValue()%>)
+					</option>				
+				<%
+				}
+			}
 		}
 	}
 %>
