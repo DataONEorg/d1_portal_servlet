@@ -1,12 +1,6 @@
-<%@page import="org.dataone.service.types.v1.Person"%>
 <%@page import="org.dataone.service.types.v1.SubjectList"%>
-<%@page import="org.dataone.client.D1Client"%><%@page language="java"%>
-<%@page import="org.dataone.service.types.v1.Subject"%>
-<%@page import="org.dataone.service.types.v1.Session"%>
-<%@page import="org.dataone.client.auth.CertificateManager"%>
-<%@page import="java.security.PrivateKey"%>
-<%@page import="org.dataone.portal.PortalCertificateManager"%>
-<%@page import="java.security.cert.X509Certificate"%>
+<%@page import="org.dataone.client.D1Client"%>
+<%@page import="org.dataone.service.types.v1.Person"%>
 <%
 	String query = request.getParameter("query");
 	
