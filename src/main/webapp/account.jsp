@@ -158,13 +158,13 @@ function init() {
 		</table>
 	</form>
 
-	<h2>Edit Groups</h2>
+	<h2>Edit Group</h2>
 
 	<!-- edit a group -->
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="editGroupForm">
 		<table>
 			<tr>
-				<td>Select Group</td>
+				<td>Group Name</td>
 				<td>
 					<select name="groupName" id="groupName" onchange="listCurrentMembers()">
 						<option>None Selected</option>
@@ -182,11 +182,11 @@ function init() {
 				</td>
 			</tr>
 			<tr>
-				<td>Find People</td>
+				<td>Potential Members</td>
 				<td><input type="text" name="query" onkeyup="listPotentialMembers()"></td>
 			</tr>
 			<tr>
-				<td>Add members</td>
+				<td></td>
 				<td>
 					<select name="members" size="5" id="potentialMembers" multiple="multiple"></select>
 				</td>
