@@ -73,6 +73,23 @@ function createGroup() {
 			'listGroups()');
 	$("#result").dialog('open');
 }
+function mapIdentity() {
+	$('#equivalentIdentities [name="action"]').val('mapIdentity');
+	makeAjaxCall(
+			'<%=request.getContextPath()%>/identity', 
+			'equivalentIdentities', 
+			'result');
+	$("#result").dialog('open');
+}
+function confirmMapIdentity() {
+	$('#equivalentIdentities [name="action"]').val('confirmMapIdentity');
+	makeAjaxCall(
+			'<%=request.getContextPath()%>/identity', 
+			'equivalentIdentities', 
+			'result');
+	$("#result").dialog('open');
+}
+
 function initTabs() {
 	$(function() {
 		$("#tabs").tabs();
@@ -132,21 +149,26 @@ function init() {
 				<td>Logged in as</td>
 				<td>
 					<input type="text" size="60" readonly="readonly" name="displaySubject" value="<%=subject.getValue() %>">
+				</td>
+				<td>
 					(<a href="<%=request.getContextPath()%>/identity?action=logout&target=<%=request.getContextPath()%>">Logout</a>)
 					<!-- <a href="<%=request.getContextPath()%>/startRequest?target=<%=request.getContextPath()%>/account.jsp">Begin Login</a> -->
 				</td>
 			</tr>
 			<tr>
 				<td>Given Name</td>
-				<td><input type="text" name="givenName" value="<%=person != null ? person.getGivenName(0) : "" %>"></td>
+				<td><input type="text" size="60" name="givenName" value="<%=person != null ? person.getGivenName(0) : "" %>"></td>
+				<td></td>
 			</tr>
 			<tr>
 				<td>Family Name</td>
-				<td><input type="text" name="familyName" value="<%=person != null ? person.getFamilyName() : "" %>"></td>
+				<td><input type="text" size="60" name="familyName" value="<%=person != null ? person.getFamilyName() : "" %>"></td>
+				<td></td>
 			</tr>
 			<tr>
 				<td>Email</td>
-				<td><input type="text" name="email" value="<%=person != null ? person.getEmail(0) : "" %>"></td>
+				<td><input type="text" size="60" name="email" value="<%=person != null ? person.getEmail(0) : "" %>"></td>
+				<td></td>
 			</tr>
 			<tr>
 				<td colspan="2" align="right">
@@ -170,6 +192,7 @@ function init() {
 					}
 					%>
 				</td>
+				<td></td>
 			</tr>
 		</table>
 	</form>
@@ -191,10 +214,10 @@ function init() {
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2">
+				<td colspan="2" align="right">
 					<input type="hidden" name="action" value="TBD">
-					<input type="button" value="Map as Me" onclick="form.action.value='mapIdentity'; form.submit();">
-					<input type="button" value="Confirm Mapping" onclick="form.action.value='confirmMapIdentity'; form.submit();">
+					<input type="button" value="Map as Me" onclick="mapIdentity();">
+					<input type="button" value="Confirm Mapping" onclick="confirmMapIdentity();">
 				</td>
 			</tr>
 		</table>
@@ -246,11 +269,11 @@ function init() {
 				</td>
 			</tr>
 			<tr>
-				<td>Potential Members</td>
+				<td>Search</td>
 				<td><input type="text" name="query" onkeyup="listPotentialMembers()"></td>
 			</tr>
 			<tr>
-				<td></td>
+				<td>Potential Members</td>
 				<td>
 					<select name="members" size="5" id="potentialMembers" multiple="multiple" style="width: 100%"></select>
 				</td>
