@@ -17,6 +17,7 @@ PrivateKey key = PortalCertificateManager.getInstance().getPrivateKey(request);
 // if we don't have a certificate, then we aren't logged in
 if (certificate == null) {
 	response.sendRedirect(request.getContextPath());
+	return;
 }
 // carry on if we have a certificate
 String subjectDN = CertificateManager.getInstance().getSubjectDN(certificate);
