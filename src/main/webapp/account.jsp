@@ -8,7 +8,9 @@
 <head>
 <title>DataONE Portal Registration</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link type="text/css" href="jquery/jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css" rel="Stylesheet" />	
 <script src="jquery/jquery-1.6.4.min.js"></script>
+<script src="jquery/jqueryui/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="text/javascript">
 
 function makeAjaxCall(url, formId, divId, callback) {
@@ -36,11 +38,40 @@ function listGroups() {
 }
 // the current members
 function listCurrentMembers() {
+	// clear the selections
+	$("#potentialMembers option:selected").attr("selected", false);
+	// get the current membership
 	makeAjaxCall("subjectInfo.jsp", "editGroupForm", "currentMembers");
 }
 // all potential members
 function listPotentialMembers() {
 	makeAjaxCall("listPeople.jsp", "editGroupForm", "potentialMembers");
+}
+function addGroupMembers() {
+	$('#editGroupForm [name="action"]').val('addGroupMembers');
+	makeAjaxCall(
+			'<%=request.getContextPath()%>/identity', 
+			'editGroupForm', 
+			'result', 
+			'listCurrentMembers()');
+	$("#result").dialog('open');
+}
+function removeGroupMembers() {
+	$('#editGroupForm [name="action"]').val('removeGroupMembers');
+	makeAjaxCall(
+			'<%=request.getContextPath()%>/identity', 
+			'editGroupForm', 
+			'result', 
+			'listCurrentMembers()');
+	$("#result").dialog('open');
+}
+function createGroup() {
+	makeAjaxCall(
+			'<%=request.getContextPath()%>/identity', 
+			'createGroupForm', 
+			'result',
+			'listGroups()');
+	$("#result").dialog('open');
 }
 
 function init() {
@@ -52,6 +83,14 @@ function init() {
 	listPotentialMembers();
 	// skip this and let the callback do it when the groups are loaded
 	//listCurrentMembers();
+
+	// make the result section a dialog (popup)
+	$("#result").dialog(
+		{	autoOpen: false,
+			title: "Results",
+			width: 450
+		}
+	);
 	
 }
 
@@ -152,7 +191,7 @@ function init() {
 				<td>
 					<!--  <input type="hidden" name="target" value="<%=request.getContextPath()%>/account.jsp"/> -->
 					<input type="hidden" name="action" value="createGroup">
-					<input type="button" value="Create" onclick="form.action.value='createGroup'; form.submit();">
+					<input type="button" value="Create" onclick="createGroup();">
 				</td>
 			</tr>
 		</table>
@@ -178,7 +217,8 @@ function init() {
 					<select name="members" size="5" id="currentMembers" multiple="multiple"></select>
 				</td>
 				<td>
-					<input type="button" value="Remove selected" onclick="form.action.value='removeGroupMembers'; form.submit();">
+					<input type="button" value="Remove selected" 
+						onclick="removeGroupMembers();">
 				</td>
 			</tr>
 			<tr>
@@ -191,7 +231,8 @@ function init() {
 					<select name="members" size="5" id="potentialMembers" multiple="multiple"></select>
 				</td>
 				<td>
-					<input type="button" value="Add selected" onclick="form.action.value='addGroupMembers'; form.submit();">
+					<input type="button" value="Add selected" 
+						onclick="addGroupMembers();">
 				</td>
 			</tr>
 		</table>
