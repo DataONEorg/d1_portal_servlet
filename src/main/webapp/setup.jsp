@@ -1,6 +1,6 @@
 
 <%@page import="org.dataone.service.types.v1.Person"%>
-<%@page import="org.dataone.service.types.v1.SubjectList"%>
+<%@page import="org.dataone.service.types.v1.SubjectInfo"%>
 <%@page import="org.dataone.client.D1Client"%><%@page language="java"%>
 <%@page import="org.dataone.service.types.v1.Subject"%>
 <%@page import="org.dataone.service.types.v1.Session"%>
@@ -33,7 +33,7 @@ d1Session.setSubject(subject);
 // look up the details about the person represented by the subject, if possible
 Person person = null;
 try {
-	SubjectList subjectInfo = D1Client.getCN().getSubjectInfo(d1Session, subject);
+	SubjectInfo subjectInfo = D1Client.getCN().getSubjectInfo(d1Session, subject);
 	person = subjectInfo.getPerson(0);
 } catch (Exception e) {
 	// ignore this for now...

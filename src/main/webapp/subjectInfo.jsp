@@ -1,4 +1,4 @@
-<%@page import="org.dataone.service.types.v1.SubjectList"%>
+<%@page import="org.dataone.service.types.v1.SubjectInfo"%>
 <%@page import="org.dataone.client.D1Client"%>
 <%@page import="org.dataone.service.types.v1.Group"%>
 <%@page import="org.dataone.service.types.v1.Subject"%>
@@ -14,10 +14,10 @@
 	subject.setValue(subjectParam);
 	
 	// look up the subjects
-	SubjectList subjectList = D1Client.getCN().getSubjectInfo(null, subject);
-	if (subjectList != null && subjectList.getGroupList() != null) {
+	SubjectInfo subjectInfo = D1Client.getCN().getSubjectInfo(null, subject);
+	if (subjectInfo != null && subjectInfo.getGroupList() != null) {
 		// include the Groups
-		for (Group g: subjectList.getGroupList()) {
+		for (Group g: subjectInfo.getGroupList()) {
 	%>
 			<!-- do not show the group we came from -->
 			<!-- 
@@ -38,8 +38,8 @@
 			}
 		}
 	}
-	if (subjectList != null && subjectList.getPersonList() != null) {
-		for (Person p: subjectList.getPersonList()) {
+	if (subjectInfo != null && subjectInfo.getPersonList() != null) {
+		for (Person p: subjectInfo.getPersonList()) {
 	%>	
 			<option value="<%=p.getSubject().getValue()%>">
 				<%=p.getFamilyName()%> (<%=p.getSubject().getValue()%>)
