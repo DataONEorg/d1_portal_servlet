@@ -354,6 +354,7 @@ function init() {
 			<tr>
 				<td colspan="2" align="right">
 					<input type="hidden" name="action" value="verifyAccount"/>
+					<input type="hidden" name="status" value="unverified"/>
 					<input type="button" value="Verify" onclick="verifyAccount();">
 				</td>
 			</tr>
