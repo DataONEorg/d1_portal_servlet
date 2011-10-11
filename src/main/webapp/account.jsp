@@ -270,7 +270,7 @@ function init() {
 			<tr>
 				<td>Existing</td>
 				<td>
-					<select name="subject" size="5" id="existingEquivalentIdentities">
+					<select name="subject" size="5" id="existingEquivalentIdentities" style="width : 100%;">
 					</select>
 				</td>
 			</tr>
@@ -289,12 +289,13 @@ function init() {
 			<tr>
 				<td>Pending</td>
 				<td>
-					<select name="subject" size="5" id="pendingEquivalentIdentities">
+					<select name="subject" size="5" id="pendingEquivalentIdentities" style="width : 100%;">
 					</select>
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" align="right">
+				<td></td>
+				<td align="right">
 					<input type="hidden" name="action" value="TBD">
 					<input type="button" value="Confirm Mapping" onclick="confirmMapIdentity();">
 					<input type="button" value="Deny Mapping" onclick="denyMapIdentity();">
@@ -313,7 +314,7 @@ function init() {
 			<tr>
 				<td>Available</td>
 				<td>
-					<select name="subject" size="5" id="subject">
+					<select name="subject" size="5" id="subject" style="width : 100%;">
 					</select>
 				</td>
 			</tr>
