@@ -119,9 +119,27 @@ public class IdentityServlet extends HttpServlet {
 		    	String subjectParam = request.getParameter("subject");
 				Subject subjectToMap = new Subject();
 				subjectToMap.setValue(subjectParam);
-				// verify
+				// confirm
 				D1Client.getCN().confirmMapIdentity(session, subjectToMap);
 				msg = "Account map confirmed for: " + subjectToMap.getValue();
+	    	}
+	    	if (action.equalsIgnoreCase("denyMapIdentity")) {
+	    		// gather the information needed for this method
+		    	String subjectParam = request.getParameter("subject");
+				Subject subjectToMap = new Subject();
+				subjectToMap.setValue(subjectParam);
+				// deny
+				D1Client.getCN().denyMapIdentity(session, subjectToMap);
+				msg = "Account map denied for: " + subjectToMap.getValue();
+	    	}
+	    	if (action.equalsIgnoreCase("removeMapIdentity")) {
+	    		// gather the information needed for this method
+		    	String subjectParam = request.getParameter("subject");
+				Subject subjectToMap = new Subject();
+				subjectToMap.setValue(subjectParam);
+				// remove
+				D1Client.getCN().removeMapIdentity(session, subjectToMap);
+				msg = "Account mapping removed for: " + subjectToMap.getValue();
 	    	}
 	    	if (action.equalsIgnoreCase("createGroup")) {
 	    		// gather the information needed for this method
