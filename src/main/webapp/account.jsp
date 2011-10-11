@@ -100,8 +100,7 @@ function confirmMapIdentity() {
 // show unverified accounts
 function listUnverifiedAccounts() {
 	// populate the subject list
-	makeAjaxCall("listPeople.jsp", "verifyAccountForm", "unverifiedSubject");
-	$("#result").dialog('open');
+	makeAjaxCall("listPeople.jsp", "verifyAccountForm", "unverifiedSubject", "showUnverifiedAccount()");
 }
 //show unverified accounts
 function verifyAccount() {
@@ -114,7 +113,8 @@ function verifyAccount() {
 	$("#result").dialog('open');
 }
 function showUnverifiedAccount() {
-	//TODO: load the person details into the page
+	// load the person details into the page
+	makeAjaxCall("personDetails.jsp", "verifyAccountForm", "unverifiedAccountDetails");
 }
 function initTabs() {
 	$(function() {
@@ -347,16 +347,9 @@ function init() {
 				</td>
 			</tr>
 			<tr>
-				<td>Given Name</td>
-				<td><input type="text" size="60" readonly="readonly" name="givenName" value="<%=person != null ? person.getGivenName(0) : "" %>"></td>
-			</tr>
-			<tr>
-				<td>Family Name</td>
-				<td><input type="text" size="60" readonly="readonly" name="familyName" value="<%=person != null ? person.getFamilyName() : "" %>"></td>
-			</tr>
-			<tr>
-				<td>Email</td>
-				<td><input type="text" size="60" readonly="readonly" name="email" value="<%=person != null ? person.getEmail(0) : "" %>"></td>
+				<td colspan="2">
+					<div id="unverifiedAccountDetails"></div>
+				</td>
 			</tr>
 			<tr>
 				<td colspan="2" align="right">
