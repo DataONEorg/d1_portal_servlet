@@ -5,7 +5,7 @@
 	String query = request.getParameter("query");
 	
 	// look up the subjects
-	SubjectInfo subjectInfo = D1Client.getCN().listSubjects(null, query, 0, -1);
+	SubjectInfo subjectInfo = D1Client.getCN().listSubjects(null, query, null, 0, -1);
 	if (subjectInfo != null && subjectInfo.getGroupList() != null) {
 		for (Group g: subjectInfo.getGroupList()) {
 	%>
