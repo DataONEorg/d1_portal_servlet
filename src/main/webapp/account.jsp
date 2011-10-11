@@ -97,13 +97,33 @@ function confirmMapIdentity() {
 			'listExistingEquivalentIdentities()');
 	$("#result").dialog('open');
 }
-
+// show unverified accounts
+function listUnverifiedAccounts() {
+	// populate the subject list
+	makeAjaxCall("listPeople.jsp", "verifyAccountForm", "unverifiedSubject");
+	$("#result").dialog('open');
+}
+//show unverified accounts
+function verifyAccount() {
+	// complete the call
+	makeAjaxCall(
+			'<%=request.getContextPath()%>/identity', 
+			"verifyAccountForm", 
+			"result",
+			"listUnverifiedAccounts()");
+	$("#result").dialog('open');
+}
+function showUnverifiedAccount() {
+	//TODO: load the person details into the page
+}
 function initTabs() {
 	$(function() {
 		$("#tabs").tabs();
 		$("#tabs").tabs("add", "#myAccount", "My Account");
 		$("#tabs").tabs("add", "#myIdentities", "My Identities");
 		$("#tabs").tabs("add", "#groupManagement", "Group Management");
+		$("#tabs").tabs("add", "#accountVerification", "Verification");
+		
 	});
 }
 function initDialogs() {
@@ -125,6 +145,9 @@ function init() {
 	listGroups();
 	listPotentialMembers();
 
+	// unverified accounts
+	listUnverifiedAccounts();
+	
 	// showing popups
 	initDialogs();
 	
@@ -186,15 +209,11 @@ function init() {
 					// only show the register button when it makes sense
 					if (person == null) {
 					%>
-						<!-- re-diret to this page when done registering -->
 						<input type="button" value="Register" onclick="form.action.value='registerAccount'; form.submit();">
 					<%
 					} else {
 					%>
 						<input type="button" value="Update" onclick="form.action.value='updateAccount'; form.submit();">
-						<!-- just show the results in an AJAX section -->
-						<input type="button" value="Verify" 
-						onclick="form.action.value='verifyAccount'; form.target.value=''; makeAjaxCall('<%=request.getContextPath()%>/identity', 'accountForm', 'result'); form.target.value='<%=request.getContextPath()%>/account.jsp';">
 					<%
 					}
 					%>
@@ -210,6 +229,12 @@ function init() {
 
 	<form action="" method="POST" id="existingEquivalentIdentitiesForm">
 		<table>
+			<tr>
+				<td>Logged in as</td>
+				<td>
+					<input type="text" size="60" readonly="readonly" name="displaySubject" value="<%=subject.getValue() %>">
+				</td>
+			</tr>
 			<tr>
 				<td>Existing</td>
 				<td>
@@ -302,6 +327,41 @@ function init() {
 			<tr>
 				<td colspan="2" align="right">
 					<input type="button" value="Add selected" onclick="addGroupMembers();">
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>
+
+<div id="accountVerification">
+	<h2>Account Verification</h2>
+
+	<form action="<%=request.getContextPath()%>/identity" method="POST" id="verifyAccountForm">
+		<table>
+			<tr>
+				<td>Unverified Accounts</td>
+				<td>
+					<select name="subject" id="unverifiedSubject" onchange="showUnverifiedAccount()" style="width: 100%">
+						<option>None Selected</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Given Name</td>
+				<td><input type="text" size="60" readonly="readonly" name="givenName" value="<%=person != null ? person.getGivenName(0) : "" %>"></td>
+			</tr>
+			<tr>
+				<td>Family Name</td>
+				<td><input type="text" size="60" readonly="readonly" name="familyName" value="<%=person != null ? person.getFamilyName() : "" %>"></td>
+			</tr>
+			<tr>
+				<td>Email</td>
+				<td><input type="text" size="60" readonly="readonly" name="email" value="<%=person != null ? person.getEmail(0) : "" %>"></td>
+			</tr>
+			<tr>
+				<td colspan="2" align="right">
+					<input type="hidden" name="action" value="verifyAccount"/>
+					<input type="button" value="Verify" onclick="verifyAccount();">
 				</td>
 			</tr>
 		</table>
