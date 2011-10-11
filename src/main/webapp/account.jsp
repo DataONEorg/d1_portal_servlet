@@ -8,7 +8,8 @@
 <head>
 <title>DataONE Portal Registration</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-<link type="text/css" href="jquery/jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css" rel="Stylesheet" />	
+<link type="text/css" href="jquery/jqueryui/css/smoothness/jquery-ui-1.8.16.custom.css" rel="Stylesheet" />
+<link type="text/css" href="portal.css" rel="Stylesheet" />	
 <script src="jquery/jquery-1.6.4.min.js"></script>
 <script src="jquery/jqueryui/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="text/javascript">
@@ -202,7 +203,7 @@ function init() {
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="accountForm">
 		<table>
 			<tr>
-				<td>Logged in as</td>
+				<td class="label">Logged in as</td>
 				<td>
 					<input type="text" size="60" readonly="readonly" name="displaySubject" value="<%=subject.getValue() %>">
 				</td>
@@ -212,22 +213,23 @@ function init() {
 				</td>
 			</tr>
 			<tr>
-				<td>Given Name</td>
+				<td class="label">Given Name</td>
 				<td><input type="text" size="60" name="givenName" value="<%=person != null ? person.getGivenName(0) : "" %>"></td>
 				<td></td>
 			</tr>
 			<tr>
-				<td>Family Name</td>
+				<td class="label">Family Name</td>
 				<td><input type="text" size="60" name="familyName" value="<%=person != null ? person.getFamilyName() : "" %>"></td>
 				<td></td>
 			</tr>
 			<tr>
-				<td>Email</td>
+				<td class="label">Email</td>
 				<td><input type="text" size="60" name="email" value="<%=person != null ? person.getEmail(0) : "" %>"></td>
 				<td></td>
 			</tr>
 			<tr>
-				<td colspan="2" align="right">
+				<td class="label"></td>
+				<td align="right">
 					<input type="hidden" name="subject" value="<%=subject.getValue() %>"/>
 					<input type="hidden" name="target" value="<%=request.getContextPath()%>/account.jsp"/>
 					<input type="hidden" name="action" value="TBD"/>
@@ -262,20 +264,21 @@ function init() {
 	<form action="" method="POST" id="existingEquivalentIdentitiesForm">
 		<table>
 			<tr>
-				<td>Logged in as</td>
+				<td class="label">Logged in as</td>
 				<td>
 					<input type="text" size="60" readonly="readonly" name="displaySubject" value="<%=subject.getValue() %>">
 				</td>
 			</tr>
 			<tr>
-				<td>Existing</td>
+				<td class="label">Existing</td>
 				<td>
 					<select name="subject" size="5" id="existingEquivalentIdentities" style="width : 100%;">
 					</select>
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" align="right">
+				<td class="label"></td>
+				<td align="right">
 					<input type="hidden" name="action" value="removeMapIdentity">
 					<input type="button" value="Remove Mapping" onclick="removeMapIdentity();">
 				</td>
@@ -287,14 +290,14 @@ function init() {
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="pendingEquivalentIdentitiesForm">
 		<table>
 			<tr>
-				<td>Pending</td>
+				<td class="label">Pending</td>
 				<td>
 					<select name="subject" size="5" id="pendingEquivalentIdentities" style="width : 100%;">
 					</select>
 				</td>
 			</tr>
 			<tr>
-				<td></td>
+				<td class="label"></td>
 				<td align="right">
 					<input type="hidden" name="action" value="TBD">
 					<input type="button" value="Confirm Mapping" onclick="confirmMapIdentity();">
@@ -308,18 +311,19 @@ function init() {
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="equivalentIdentitiesForm">
 		<table>
 			<tr>
-				<td>Search</td>
+				<td class="label">Search</td>
 				<td><input type="text" name="query" onkeyup="listPeople()"></td>
 			</tr>
 			<tr>
-				<td>Available</td>
+				<td class="label">Available</td>
 				<td>
 					<select name="subject" size="5" id="subject" style="width : 100%;">
 					</select>
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" align="right">
+				<td class="label"></td>
+				<td align="right">
 					<input type="hidden" name="action" value="mapIdentity">
 					<input type="button" value="Map as Me" onclick="mapIdentity();">
 				</td>
@@ -335,11 +339,12 @@ function init() {
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="createGroupForm">
 		<table>
 			<tr>
-				<td>Group Name</td>
+				<td class="label">Group Name</td>
 				<td><input type="text" name="groupName" size="50"></td>
 			</tr>
 			<tr>
-				<td colspan="2" align="right">
+				<td class="label"></td>
+				<td align="right">
 					<!--  <input type="hidden" name="target" value="<%=request.getContextPath()%>/account.jsp"/> -->
 					<input type="hidden" name="action" value="createGroup">
 					<input type="button" value="Create" onclick="createGroup();">
@@ -354,7 +359,7 @@ function init() {
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="editGroupForm">
 		<table>
 			<tr>
-				<td>Group Name</td>
+				<td class="label">Group Name</td>
 				<td>
 					<select name="groupName" id="groupName" onchange="listCurrentMembers()" style="width: 100%">
 						<option>None Selected</option>
@@ -363,28 +368,30 @@ function init() {
 				</td>
 			</tr>
 			<tr>
-				<td>Current members</td>
+				<td class="label">Current members</td>
 				<td>
 					<select name="members" size="5" id="currentMembers" multiple="multiple" style="width: 100%"></select>
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" align="right">
+				<td class="label"></td>
+				<td align="right">
 					<input type="button" value="Remove selected" onclick="removeGroupMembers();">
 				</td>
 			</tr>
 			<tr>
-				<td>Search</td>
+				<td class="label">Search</td>
 				<td><input type="text" name="query" onkeyup="listPotentialMembers()"></td>
 			</tr>
 			<tr>
-				<td>Potential Members</td>
+				<td class="label">Potential Members</td>
 				<td>
 					<select name="members" size="5" id="potentialMembers" multiple="multiple" style="width: 100%"></select>
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" align="right">
+				<td class="label"></td>
+				<td align="right">
 					<input type="button" value="Add selected" onclick="addGroupMembers();">
 				</td>
 			</tr>
@@ -398,7 +405,7 @@ function init() {
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="verifyAccountForm">
 		<table>
 			<tr>
-				<td>Unverified Accounts</td>
+				<td class="label">Unverified Accounts</td>
 				<td>
 					<select name="subject" id="unverifiedSubject" onchange="showUnverifiedAccount()" style="width: 100%">
 						<option>None Selected</option>
@@ -411,7 +418,8 @@ function init() {
 				</td>
 			</tr>
 			<tr>
-				<td colspan="2" align="right">
+				<td class="label"></td>
+				<td align="right">
 					<input type="hidden" name="action" value="verifyAccount"/>
 					<input type="hidden" name="status" value="unverified"/>
 					<input type="button" value="Verify" onclick="verifyAccount();">

@@ -16,15 +16,15 @@
 	%>
 	<table>
 		<tr>
-			<td>Given Name</td>
+			<td class="label">Given Name</td>
 			<td><input type="text" readonly="readonly" size="60" name="givenName" value="<%=person != null ? person.getGivenName(0) : "" %>"></td>
 		</tr>
 		<tr>
-			<td>Family Name</td>
+			<td class="label">Family Name</td>
 			<td><input type="text" readonly="readonly" size="60" name="familyName" value="<%=person != null ? person.getFamilyName() : "" %>"></td>
 		</tr>
 		<tr>
-			<td>Email</td>
+			<td class="label">Email</td>
 			<td><input type="text" readonly="readonly" size="60" name="email" value="<%=person != null ? person.getEmail(0) : "" %>"></td>
 		</tr>
 	</table>
