@@ -12,7 +12,13 @@
 	// look up the subject info
 	SubjectInfo subjectInfo = D1Client.getCN().getPendingMapIdentity(null, subject);
 	if (subjectInfo != null && subjectInfo.getPersonList() != null) {
+		boolean first = true;
 		for (Person p: subjectInfo.getPersonList()) {
+			// skip the first -- it is this subject
+			if (first) {
+				first = false;
+				continue;
+			}
 	%>
 			<option value="<%=p.getSubject().getValue()%>">
 				<%=p.getFamilyName()%> (<%=p.getSubject().getValue()%>)
