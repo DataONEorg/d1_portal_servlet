@@ -30,7 +30,7 @@ function makeAjaxCall(url, formId, divId, callback) {
 	);
 }
 function listPeople() {
-	makeAjaxCall("listPeople.jsp", "equivalentIdentities", "subject");
+	makeAjaxCall("listPeople.jsp", "equivalentIdentitiesForm", "subject");
 }
 // the groups
 function listGroups() {
@@ -73,20 +73,28 @@ function createGroup() {
 			'listGroups()');
 	$("#result").dialog('open');
 }
+//the current equivalent ids
+function listExistingEquivalentIdentities() {
+	// get the current ones
+	makeAjaxCall("subjectInfo.jsp", "existingEquivalentIdentitiesForm", "existingEquivalentIdentities");
+}
+// map the identities
 function mapIdentity() {
-	$('#equivalentIdentities [name="action"]').val('mapIdentity');
+	$('#equivalentIdentitiesForm [name="action"]').val('mapIdentity');
 	makeAjaxCall(
 			'<%=request.getContextPath()%>/identity', 
-			'equivalentIdentities', 
+			'equivalentIdentitiesForm', 
 			'result');
 	$("#result").dialog('open');
 }
+// confirm the identity mapping, refresh to show the results
 function confirmMapIdentity() {
-	$('#equivalentIdentities [name="action"]').val('confirmMapIdentity');
+	$('#equivalentIdentitiesForm [name="action"]').val('confirmMapIdentity');
 	makeAjaxCall(
 			'<%=request.getContextPath()%>/identity', 
-			'equivalentIdentities', 
-			'result');
+			'equivalentIdentitiesForm', 
+			'result',
+			'listExistingEquivalentIdentities()');
 	$("#result").dialog('open');
 }
 
@@ -111,12 +119,11 @@ function initDialogs() {
 function init() {
 	// equivalent identities
 	listPeople();
+	listExistingEquivalentIdentities();
 
 	//  groups
 	listGroups();
 	listPotentialMembers();
-	// skip this and let the callback do it when the groups are loaded
-	//listCurrentMembers();
 
 	// showing popups
 	initDialogs();
@@ -200,7 +207,21 @@ function init() {
 
 <div id="myIdentities">
 	<h2>Equivalent Identities</h2>
-	<form action="<%=request.getContextPath()%>/identity" method="POST" id="equivalentIdentities">
+
+	<form action="" method="POST" id="existingEquivalentIdentitiesForm">
+		<table>
+			<tr>
+				<td>Existing</td>
+				<td>
+					<input type="hidden" name="subject" value="<%=subject.getValue() %>"/>
+					<select disabled="disabled" name="existingEquivalentIdentities" size="5" id="existingEquivalentIdentities">
+					</select>
+				</td>
+			</tr>
+		</table>
+	</form>
+
+	<form action="<%=request.getContextPath()%>/identity" method="POST" id="equivalentIdentitiesForm">
 		<table>
 			<tr>
 				<td>Search</td>
