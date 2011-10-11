@@ -187,7 +187,10 @@ function init() {
 </head>
 <body onload="init()">
 
-<h1>DataONE Identity Management</h1>
+<!-- dataone logo header -->
+<div class="logoheader">
+	<h1></h1>
+</div>
 
 <!-- load AJAX results here -->
 <div id="result"></div>
