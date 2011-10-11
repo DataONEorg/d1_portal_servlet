@@ -75,8 +75,13 @@ function createGroup() {
 }
 //the current equivalent ids
 function listExistingEquivalentIdentities() {
-	// get the current ones
-	makeAjaxCall("subjectInfo.jsp", "existingEquivalentIdentitiesForm", "existingEquivalentIdentities");
+	// get the current equivalent identities
+	makeAjaxCall("subjectInfo.jsp", "identityLookupForm", "existingEquivalentIdentities");
+}
+//the current pending equivalent ids
+function listPendingEquivalentIdentities() {
+	// get the current pendingequivalent identities
+	makeAjaxCall("pendingSubjectInfo.jsp", "identityLookupForm", "pendingEquivalentIdentities");
 }
 // map the identities
 function mapIdentity() {
@@ -89,10 +94,30 @@ function mapIdentity() {
 }
 // confirm the identity mapping, refresh to show the results
 function confirmMapIdentity() {
-	$('#equivalentIdentitiesForm [name="action"]').val('confirmMapIdentity');
+	$('#pendingEquivalentIdentitiesForm [name="action"]').val('confirmMapIdentity');
 	makeAjaxCall(
 			'<%=request.getContextPath()%>/identity', 
-			'equivalentIdentitiesForm', 
+			'pendingEquivalentIdentitiesForm', 
+			'result',
+			'listExistingEquivalentIdentities();listPendingEquivalentIdentities()');
+	$("#result").dialog('open');
+}
+//deny the identity mapping, refresh to show the results
+function denyMapIdentity() {
+	$('#pendingEquivalentIdentitiesForm [name="action"]').val('denyMapIdentity');
+	makeAjaxCall(
+			'<%=request.getContextPath()%>/identity', 
+			'pendingEquivalentIdentitiesForm', 
+			'result',
+			'listPendingEquivalentIdentities()');
+	$("#result").dialog('open');
+}
+//remove the identity mapping, refresh to show the results
+function removeMapIdentity() {
+	$('#existingEquivalentIdentitiesForm [name="action"]').val('removeMapIdentity');
+	makeAjaxCall(
+			'<%=request.getContextPath()%>/identity', 
+			'existingEquivalentIdentitiesForm', 
 			'result',
 			'listExistingEquivalentIdentities()');
 	$("#result").dialog('open');
@@ -227,6 +252,12 @@ function init() {
 <div id="myIdentities">
 	<h2>Equivalent Identities</h2>
 
+	<!-- use this form for ajax lookups -->
+	<form id="identityLookupForm">
+		<input type="hidden" name="subject" value="<%=subject.getValue() %>">
+	</form>
+
+	<!-- existing -->
 	<form action="" method="POST" id="existingEquivalentIdentitiesForm">
 		<table>
 			<tr>
@@ -238,14 +269,40 @@ function init() {
 			<tr>
 				<td>Existing</td>
 				<td>
-					<input type="hidden" name="subject" value="<%=subject.getValue() %>"/>
-					<select disabled="disabled" name="existingEquivalentIdentities" size="5" id="existingEquivalentIdentities">
+					<select name="subject" size="5" id="existingEquivalentIdentities">
 					</select>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" align="right">
+					<input type="hidden" name="action" value="removeMapIdentity">
+					<input type="button" value="Remove Mapping" onclick="removeMapIdentity();">
 				</td>
 			</tr>
 		</table>
 	</form>
 
+	<!-- PENDING -->
+	<form action="<%=request.getContextPath()%>/identity" method="POST" id="pendingEquivalentIdentitiesForm">
+		<table>
+			<tr>
+				<td>Pending</td>
+				<td>
+					<select name="subject" size="5" id="pendingEquivalentIdentities">
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" align="right">
+					<input type="hidden" name="action" value="TBD">
+					<input type="button" value="Confirm Mapping" onclick="confirmMapIdentity();">
+					<input type="button" value="Deny Mapping" onclick="denyMapIdentity();">
+				</td>
+			</tr>
+		</table>
+	</form>
+
+	<!-- ADD -->
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="equivalentIdentitiesForm">
 		<table>
 			<tr>
@@ -253,7 +310,7 @@ function init() {
 				<td><input type="text" name="query" onkeyup="listPeople()"></td>
 			</tr>
 			<tr>
-				<td>Select</td>
+				<td>Available</td>
 				<td>
 					<select name="subject" size="5" id="subject">
 					</select>
@@ -261,13 +318,13 @@ function init() {
 			</tr>
 			<tr>
 				<td colspan="2" align="right">
-					<input type="hidden" name="action" value="TBD">
+					<input type="hidden" name="action" value="mapIdentity">
 					<input type="button" value="Map as Me" onclick="mapIdentity();">
-					<input type="button" value="Confirm Mapping" onclick="confirmMapIdentity();">
 				</td>
 			</tr>
 		</table>
 	</form>
+
 </div>
 
 <div id="groupManagement">
