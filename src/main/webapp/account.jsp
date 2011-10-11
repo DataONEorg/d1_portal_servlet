@@ -165,6 +165,7 @@ function init() {
 	// equivalent identities
 	listPeople();
 	listExistingEquivalentIdentities();
+	listPendingEquivalentIdentities();
 
 	//  groups
 	listGroups();
