@@ -67,11 +67,15 @@ function removeGroupMembers() {
 	$("#result").dialog('open');
 }
 function createGroup() {
+	// construct the full DN here. yikes!
+	var groupName = $('#createGroupForm [name="groupName"]').val();
+	$('#createGroupForm [name="groupName"]').val('CN=' + groupName + ',DC=cilogon,DC=org');
 	makeAjaxCall(
 			'<%=request.getContextPath()%>/identity', 
 			'createGroupForm', 
 			'result',
 			'listGroups()');
+	$('#createGroupForm [name="groupName"]').val(groupName);
 	$("#result").dialog('open');
 }
 //the current equivalent ids
@@ -207,7 +211,11 @@ function init() {
 
 <div id="myAccount">
 	<h2>Account Details</h2>
-
+	<p>
+	Please enter biographical details for this identity. 
+	Your identity provider may have provided some of the information, depending on that institution's policy.
+	You are free to edit this information to keep our records current.
+	</p>
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="accountForm">
 		<table>
 			<tr>
@@ -226,12 +234,12 @@ function init() {
 				<td></td>
 			</tr>
 			<tr>
-				<td class="label">Family Name</td>
+				<td class="label">Family Name*</td>
 				<td><input type="text" size="60" name="familyName" value="<%=person != null ? person.getFamilyName() : "" %>"></td>
 				<td></td>
 			</tr>
 			<tr>
-				<td class="label">Email</td>
+				<td class="label">Email*</td>
 				<td><input type="text" size="60" name="email" value="<%=person != null ? person.getEmail(0) : "" %>"></td>
 				<td></td>
 			</tr>
@@ -262,6 +270,11 @@ function init() {
 
 <div id="myIdentities">
 	<h2>Equivalent Identities</h2>
+	<p>
+	Equivalent identities allow us to maintain continuity in our access control rules as institutional
+	affiliations shift over time. A new identity can be "mapped" to an older identity so that the new identity 
+	is granted the same access privileges as the older identity; and vice versa.
+	</p>
 
 	<!-- use this form for ajax lookups -->
 	<form id="identityLookupForm">
@@ -295,6 +308,10 @@ function init() {
 	</form>
 
 	<!-- PENDING -->
+	<p>
+	Identity mapping is a 2-step process: a request by Identity A to map as Identity B must be confirmed by Identity B.
+	Pending requests for you that were initiated by <em>other</em> accounts are below.
+	</p>
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="pendingEquivalentIdentitiesForm">
 		<table>
 			<tr>
@@ -316,6 +333,10 @@ function init() {
 	</form>
 
 	<!-- ADD -->
+	<p>
+	You may request that your current identity be mapped to one below.
+	A request must be confirmed by the other identity before it is active.
+	</p>
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="equivalentIdentitiesForm">
 		<table>
 			<tr>
@@ -343,6 +364,9 @@ function init() {
 
 <div id="groupManagement">
 	<h2>Create Group</h2>
+	<p>
+	Groups allow us to define access control rules for one identity (the group) that apply to all the members.
+	</p>
 	<!-- create a group -->
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="createGroupForm">
 		<table>
@@ -364,6 +388,10 @@ function init() {
 	<h2>Edit Group</h2>
 
 	<!-- edit a group -->
+	<p>
+	The account that created the group can add and remove members from it. 
+	Eventually, we will define rules that allow other accounts to edit the group.
+	</p>
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="editGroupForm">
 		<table>
 			<tr>
@@ -409,7 +437,12 @@ function init() {
 
 <div id="accountVerification">
 	<h2>Account Verification</h2>
-
+	<p>
+	New account details should be verified by an administrator before they become active in DataONE.
+	This is particularly true of Google and ProtectNetwork identities that provide no assurances that someone
+	is who they claim to be. 
+	Accounts from institutions with which DataONE has an established trust relationship may not require verification.
+	</p>
 	<form action="<%=request.getContextPath()%>/identity" method="POST" id="verifyAccountForm">
 		<table>
 			<tr>
