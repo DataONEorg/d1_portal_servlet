@@ -10,7 +10,18 @@
 	subject.setValue(subjectParam);
 	
 	// look up the subject info
-	SubjectInfo subjectInfo = D1Client.getCN().getPendingMapIdentity(null, subject);
+	SubjectInfo subjectInfo = null;
+	try {
+		subjectInfo = D1Client.getCN().getPendingMapIdentity(null, subject);
+	} catch (Exception e) {
+		// ignore for now -- happens when account is not registered
+		%>
+			<option value="NONE">
+				None Found
+			</option>	
+		<%
+		return;
+	}
 	if (subjectInfo != null && subjectInfo.getPersonList() != null) {
 		boolean first = true;
 		for (Person p: subjectInfo.getPersonList()) {
@@ -26,5 +37,4 @@
 	<%
 		}
 	}
-		
 %>
