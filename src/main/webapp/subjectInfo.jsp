@@ -16,7 +16,18 @@
 	subject.setValue(subjectParam);
 	
 	// look up the subjects
-	SubjectInfo subjectInfo = D1Client.getCN().getSubjectInfo(null, subject);
+	SubjectInfo subjectInfo = null;
+	try {
+		subjectInfo = D1Client.getCN().getSubjectInfo(null, subject);
+	} catch (Exception e) {
+		// ignore for now -- happens when account is not registered
+		%>
+			<option value="NONE">
+				None Found
+			</option>	
+		<%
+		return;
+	}
 	if (subjectInfo != null && subjectInfo.getGroupList() != null) {
 		// include the Groups
 		boolean isFirst = true;
