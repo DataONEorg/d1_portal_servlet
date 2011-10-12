@@ -136,7 +136,7 @@
    
 	<context-param>
 		<param-name>org.cilogon.debug.server</param-name>
-		<param-value>https://test.cilogon.org</param-value>
+		<param-value>https://cilogon.org</param-value>
 	</context-param>
 	
 	<!-- override the CN URL for DataONE -->
