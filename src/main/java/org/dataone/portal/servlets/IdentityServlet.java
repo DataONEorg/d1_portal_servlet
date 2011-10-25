@@ -7,10 +7,12 @@ import java.security.cert.X509Certificate;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.cilogon.portal.util.PortalCredentials;
 import org.dataone.client.D1Client;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
@@ -180,7 +182,23 @@ public class IdentityServlet extends HttpServlet {
 				msg = "Members removed from group: " + groupName.getValue();
 	    	}
 	    	
+	    	if (action.equalsIgnoreCase("getToken")) {
+	    		// we need to return the token so other apps can use it to validate authentication
+	    		Cookie cookie = PortalCertificateManager.getInstance().getCookie(request);
+	    		if (cookie != null) {
+	    			msg = cookie.getValue();
+	    		}
+	    	}
 	    	
+	    	if (action.equalsIgnoreCase("isAuthenticated")) {
+    			msg = Boolean.FALSE.toString();
+	    		// check for the certificate by token
+	    		String token = request.getParameter("token");
+	    		PortalCredentials credentials = PortalCertificateManager.getInstance().getCredentials(token);
+	    		if (credentials != null && credentials.getX509Certificate() != null) {
+	    			msg = Boolean.TRUE.toString();
+	    		}
+	    	}
 	    	
 	    	if (action.equalsIgnoreCase("logout")) {
 	    		// remove the cookie for D1
@@ -203,13 +221,6 @@ public class IdentityServlet extends HttpServlet {
 		// write the response
         response.setContentType("text/html");
         PrintWriter pw = response.getWriter();
-        String html = "<html>\n" +
-                "<body>\n" +
-                "<h1>Results</h1>\n" +
-                "<p>" + msg + "</p>" +
-                "</body>\n" +
-                "</html>";
-        //pw.println(html);
         // just print the plain text for AJAX
         pw.println(msg);
         pw.flush();
