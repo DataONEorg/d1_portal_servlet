@@ -107,13 +107,13 @@ public class IdentityServlet extends HttpServlet {
 				D1Client.getCN().verifyAccount(session, subjectToVerify);
 				msg = "Account verified: " + subjectToVerify.getValue();
 	    	}
-	    	if (action.equalsIgnoreCase("mapIdentity")) {
+	    	if (action.equalsIgnoreCase("requestMapIdentity")) {
 	    		// gather the information needed for this method
 		    	String subjectParam = request.getParameter("subject");
 				Subject subjectToMap = new Subject();
 				subjectToMap.setValue(subjectParam);
 				// verify
-				D1Client.getCN().mapIdentity(session, subjectToMap);
+				D1Client.getCN().requestMapIdentity(session, subjectToMap);
 				msg = "Account map requested for: " + subjectToMap.getValue();
 	    	}
 	    	if (action.equalsIgnoreCase("confirmMapIdentity")) {
@@ -187,6 +187,13 @@ public class IdentityServlet extends HttpServlet {
 	    		Cookie cookie = PortalCertificateManager.getInstance().getCookie(request);
 	    		if (cookie != null) {
 	    			msg = cookie.getValue();
+	    		}
+	    	}
+	    	
+	    	if (action.equalsIgnoreCase("getSubject")) {
+	    		// tell them who is logged in with that certificate
+	    		if (certificate != null) {
+	    			msg = CertificateManager.getInstance().getSubjectDN(certificate);
 	    		}
 	    	}
 	    	

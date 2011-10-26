@@ -89,8 +89,8 @@ function listPendingEquivalentIdentities() {
 	makeAjaxCall("pendingSubjectInfo.jsp", "identityLookupForm", "pendingEquivalentIdentities");
 }
 // map the identities
-function mapIdentity() {
-	$('#equivalentIdentitiesForm [name="action"]').val('mapIdentity');
+function requestMapIdentity() {
+	$('#equivalentIdentitiesForm [name="action"]').val('requestMapIdentity');
 	makeAjaxCall(
 			'<%=request.getContextPath()%>/identity', 
 			'equivalentIdentitiesForm', 
@@ -353,8 +353,8 @@ function init() {
 			<tr>
 				<td class="label"></td>
 				<td align="right">
-					<input type="hidden" name="action" value="mapIdentity">
-					<input type="button" value="Map as Me" onclick="mapIdentity();">
+					<input type="hidden" name="action" value="requestMapIdentity">
+					<input type="button" value="Map as Me" onclick="requestMapIdentity();">
 				</td>
 			</tr>
 		</table>
