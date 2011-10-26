@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cilogon.portal.util.PortalCredentials;
 import org.dataone.client.D1Client;
 import org.dataone.client.auth.CertificateManager;
@@ -26,6 +28,8 @@ import org.dataone.service.types.v1.SubjectList;
  * <p>Created by Ben Leinfelder<br>
  */
 public class IdentityServlet extends HttpServlet {
+	
+	private static Log log = LogFactory.getLog(IdentityServlet.class);
 	
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
@@ -50,19 +54,28 @@ public class IdentityServlet extends HttpServlet {
 	public void handleRequest(HttpServletRequest request, HttpServletResponse response)
     	throws ServletException, IOException {
 		
-		 // get the certificate, if we have it
-    	X509Certificate certificate = PortalCertificateManager.getInstance().getCertificate(request);
-    	PrivateKey key = PortalCertificateManager.getInstance().getPrivateKey(request);
-    	String subjectDN = CertificateManager.getInstance().getSubjectDN(certificate);
-    	
-		// set in the D1client/CertMan
-    	CertificateManager.getInstance().registerCertificate(subjectDN , certificate, key);
-    	
-    	// pass this subject in as the Session so that the certificate can be found later in the process
-		Session session = new Session();
-		Subject subject = new Subject();
-		subject.setValue(subjectDN);
-		session.setSubject(subject);
+		Session session = null;
+		Subject subject = null;
+		X509Certificate certificate = null;
+
+		// get the certificate, if we have it
+		try {
+	    	certificate = PortalCertificateManager.getInstance().getCertificate(request);
+	    	PrivateKey key = PortalCertificateManager.getInstance().getPrivateKey(request);
+	    	String subjectDN = CertificateManager.getInstance().getSubjectDN(certificate);
+	    	
+			// set in the D1client/CertMan
+	    	CertificateManager.getInstance().registerCertificate(subjectDN , certificate, key);
+	    	
+	    	// pass this subject in as the Session so that the certificate can be found later in the process
+			session = new Session();
+			subject = new Subject();
+			subject.setValue(subjectDN);
+			session.setSubject(subject);
+		} catch (Exception e) {
+			// some actions do not require the client certificate be found via cookie
+			log.warn("Could not find some parameters -- this may present problems for some actions");
+		}
 
 		// process the action accordingly
     	String action = request.getParameter("action");
