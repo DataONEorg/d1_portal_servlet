@@ -191,6 +191,11 @@ public class IdentityServlet extends HttpServlet {
 	    	}
 	    	
 	    	if (action.equalsIgnoreCase("getSubject")) {
+	    		String token = request.getParameter("token");
+	    		if (token != null) {
+	    			// look up via the token, not the cookie
+	    			certificate = PortalCertificateManager.getInstance().getCredentials(token).getX509Certificate();
+	    		}
 	    		// tell them who is logged in with that certificate
 	    		if (certificate != null) {
 	    			msg = CertificateManager.getInstance().getSubjectDN(certificate);
