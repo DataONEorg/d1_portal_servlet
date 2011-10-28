@@ -158,7 +158,13 @@ function initTabs() {
 		if (!isRegistered) {
 			// disable the other tabs until we are registered
 			$("#tabs").tabs( "option", "disabled", [1, 2, 3] );
-		}	
+		}
+		// TODO: figure out admins
+		var isAdmin = false;
+		if (!isAdmin) {
+			// disable the verification tab for non-admins
+			$("#tabs").tabs( "option", "disabled", [3] );
+		}
 	});
 }
 function initDialogs() {
