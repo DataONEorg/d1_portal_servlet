@@ -7,7 +7,7 @@
 
 	// look up the subjects
 	SubjectInfo subjectInfo = D1Client.getCN().listSubjects(null, query, status, 0, -1);
-	if (subjectInfo != null && subjectInfo.getPersonList() != null) {
+	if (subjectInfo != null && subjectInfo.getPersonList() != null && subjectInfo.getPersonList().size() > 0) {
 		for (Person p: subjectInfo.getPersonList()) {
 	%>	
 			<option value="<%=p.getSubject().getValue()%>">
@@ -15,5 +15,11 @@
 			</option>				
 	<%
 		}
+	} else {
+	%>
+		<option value="NONE">
+			None Found
+		</option>
+	<%
 	}
 %>
