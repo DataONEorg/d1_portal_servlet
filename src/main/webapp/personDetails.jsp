@@ -10,7 +10,16 @@
 	subject.setValue(subjectParam);
 	
 	// look up the subject info
-	SubjectInfo subjectInfo = D1Client.getCN().getSubjectInfo(null, subject);
+	SubjectInfo subjectInfo = null;
+	try {
+		subjectInfo = D1Client.getCN().getSubjectInfo(null, subject);
+	} catch (Exception e) {
+		// ignore for now -- happens when there is no account
+		%>
+			Not Found	
+		<%
+		return;
+	}
 	if (subjectInfo != null && subjectInfo.getPersonList() != null) {
 		Person person = subjectInfo.getPerson(0);
 	%>
