@@ -19,9 +19,11 @@ import org.dataone.client.D1Client;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
 import org.dataone.portal.PortalCertificateManager;
+import org.dataone.service.types.v1.Group;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v1.SubjectList;
 
 /**
@@ -161,7 +163,10 @@ public class IdentityServlet extends HttpServlet {
 		    	String groupNameParam = request.getParameter("groupName");
 		    	Subject groupName = new Subject();
 		    	groupName.setValue(groupNameParam);
-				Subject retSubject = D1Client.getCN().createGroup(session, groupName);
+		    	Group group = new Group();
+		    	group.setSubject(groupName);
+		    	group.setGroupName(groupNameParam);
+				Subject retSubject = D1Client.getCN().createGroup(session, group);
 				msg = "Group created: " + retSubject.getValue();
 	    	}
 	    	if (action.equalsIgnoreCase("addGroupMembers")) {
@@ -176,7 +181,11 @@ public class IdentityServlet extends HttpServlet {
 	    			memberSubject.setValue(m);
 					members.addSubject(memberSubject);
 	    		}
-				boolean result = D1Client.getCN().addGroupMembers(session, groupName, members);
+	    		// look up existing group to add members to
+	    		SubjectInfo groupInfo = D1Client.getCN().getSubjectInfo(session, groupName);
+	    		Group group = groupInfo.getGroup(0);
+	    		group.getHasMemberList().addAll(members.getSubjectList());
+				boolean result = D1Client.getCN().updateGroup(session, group);
 				msg = "Members added to group: " + groupName.getValue();
 	    	}
 	    	if (action.equalsIgnoreCase("removeGroupMembers")) {
@@ -191,7 +200,11 @@ public class IdentityServlet extends HttpServlet {
 	    			memberSubject.setValue(m);
 					members.addSubject(memberSubject);
 	    		}
-				boolean result = D1Client.getCN().removeGroupMembers(session, groupName, members);
+	    		// look up existing group to remove members from
+	    		SubjectInfo groupInfo = D1Client.getCN().getSubjectInfo(session, groupName);
+	    		Group group = groupInfo.getGroup(0);
+	    		group.getHasMemberList().removeAll(members.getSubjectList());
+				boolean result = D1Client.getCN().updateGroup(session, group);
 				msg = "Members removed from group: " + groupName.getValue();
 	    	}
 	    	
