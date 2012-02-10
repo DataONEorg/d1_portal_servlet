@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.dataone</groupId>
     <artifactId>d1_portal_servlet</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-RC1</version>
     <name>d1_portal_servlet</name>
     <packaging>war</packaging>
     <url>http://maven.apache.org</url>
@@ -84,7 +84,7 @@
         <dependency>
             <artifactId>d1_portal</artifactId>
             <groupId>org.dataone</groupId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0-RC1</version>
             <type>jar</type>
         </dependency>
     </dependencies>
