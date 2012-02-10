@@ -134,12 +134,13 @@
        <param-value>/var/lib/tomcat6/webapps/portal/WEB-INF/cfg.rdf</param-value>
    </context-param>
    
+	<!-- NOTE: can override to use their test server: https://test.cilogon.org -->
 	<context-param>
 		<param-name>org.cilogon.debug.server</param-name>
 		<param-value>https://cilogon.org</param-value>
 	</context-param>
 	
-	<!-- override the CN URL for DataONE -->
+	<!-- NOTE: can override the CN URL for DataONE -->
 	<context-param>
 		<param-name>D1Client.CN_URL</param-name>
 		<param-value>https://cn.dataone.org/cn</param-value>
