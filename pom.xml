@@ -87,6 +87,11 @@
             <version>1.0.0-RC1</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-wm</artifactId>
+            <version>1.9.4.5</version>
+        </dependency>
     </dependencies>
     <scm>
       <url>https://repository.dataone.org/software/cicore</url>
