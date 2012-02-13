@@ -40,6 +40,12 @@ public class IdentityServlet extends HttpServlet {
 		if (cnURL != null) {
 			Settings.getConfiguration().setProperty("D1Client.CN_URL", cnURL);
 		}
+		// point to the hazelcast config
+		String hzConfig = config.getServletContext().getInitParameter("hazelcast.config");
+		if (hzConfig != null) {
+			System.setProperty("hazelcast.config", hzConfig);
+			//Settings.getConfiguration().setProperty("hazelcast.config", hzConfig);
+		}
 	}
 	
 	

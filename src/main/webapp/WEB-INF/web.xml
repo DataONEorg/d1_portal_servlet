@@ -145,6 +145,12 @@
 		<param-name>D1Client.CN_URL</param-name>
 		<param-value>https://cn.dataone.org/cn</param-value>
 	</context-param>
+	
+	<!-- point to DataONE hazelcast config -->      
+	<context-param>
+		<param-name>hazelcast.config</param-name>
+		<param-value>/etc/dataone/storage/hazelcast.xml</param-value>
+	</context-param>
    
     <!--
     Specify the name of the configuration within the configuration file, if needed. Default behavior
@@ -158,13 +164,6 @@
         <param-value>memory configuration</param-value>
     </context-param>
     -->
-    
-    <!-- point to DataONE hazelcast config -->      
-	<env-entry>
-		<env-entry-name>hazelcast.config</env-entry-name>
-		<env-entry-type>java.lang.String</env-entry-type>
-		<env-entry-value>/etc/dataone/storage/hazelcast.xml</env-entry-value>
-	</env-entry>
       
 	<!-- Hazelcast Session replication -->
 	<filter>
