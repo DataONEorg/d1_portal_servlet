@@ -12,6 +12,7 @@
  <rdf:Description rdf:about="ncsa:cilogon.org,2010:2d1ea67d83f04e900ea92e1d83d09f01">
    <rdf:type rdf:resource="ncsa:cilogon.org,2010:/1.0/configuration/root/"/>
    <rdfs:label>default</rdfs:label>
+   
    <!--
    <a:hasStore>
      <rdf:Description rdf:about="ncsa:cilogon.org,2010:47351ce292156ce56d9d2d7da90a8859">
@@ -20,15 +21,16 @@
    </a:hasStore>
    -->
    
+   <!--
    <a:hasStore>
         <rdf:Description rdf:about="ncsa:cilogon.org,2010:3132773a288705127c03889f035dafff">
             <rdf:type rdf:resource="ncsa:cilogon.org,2010:/1.0/configuration/fileStore/"/>
             <e:dataPath>/var/lib/tomcat6/webapps/portal/WEB-INF/data</e:dataPath>
             <e:lookupPath>/var/lib/tomcat6/webapps/portal/WEB-INF/lookups</e:lookupPath>
         </rdf:Description>
-    </a:hasStore>
+	</a:hasStore>
+   -->
    
-   <!--
    <a:hasStore>
     <rdf:Description rdf:about="ncsa:cilogon.org,2010:6c5587a86b8be2dcfcf24346f7cafb7a">
         <rdf:type rdf:resource="ncsa:cilogon.org,2010:/1.0/configuration/postgreStore/"/>
@@ -36,19 +38,19 @@
             <rdf:Description rdf:about="ncsa:cilogon.org,2010:7cfea30d6dbef0a0ea90c1ff395de3b6">
                 <sqlc:adminHost>localhost</sqlc:adminHost>
                 <sqlc:adminJdbcDriver>org.postgresql.Driver</sqlc:adminJdbcDriver>
-                <sqlc:adminPassword>metacat</sqlc:adminPassword>
+                <sqlc:adminPassword>cilogon</sqlc:adminPassword>
                 <sqlc:adminPort rdf:datatype="http://www.w3.org/2001/XMLSchema#int">5432</sqlc:adminPort>
-                <sqlc:adminUsername>metacat</sqlc:adminUsername>
-                <sqlc:username>metacat</sqlc:username>
+                <sqlc:adminUsername>cilogon</sqlc:adminUsername>
+                <sqlc:username>cilogon</sqlc:username>
             </rdf:Description>
         </a:hasAdminConnection>
         <a:hasConnection>
             <rdf:Description rdf:about="ncsa:cilogon.org,2010:4d86fa15d1f85ed6847abd173a4affe3">
                 <sqlc:host>localhost</sqlc:host>
                 <sqlc:jdbcDriver>org.postgresql.Driver</sqlc:jdbcDriver>
-                <sqlc:password>metacat</sqlc:password>
+                <sqlc:password>cilogon</sqlc:password>
                 <sqlc:port rdf:datatype="http://www.w3.org/2001/XMLSchema#int">5432</sqlc:port>
-                <sqlc:username>metacat</sqlc:username>
+                <sqlc:username>cilogon</sqlc:username>
             </rdf:Description>
         </a:hasConnection>
         <a:hasDatabase>
@@ -60,11 +62,11 @@
                     </rdf:Description>
                 </a:hasTransactionTable>
                 <sqld:databaseName>csd</sqld:databaseName>
+                <sqld:schema>csd_portal</sqld:schema>
             </sqld:database>
         </a:hasDatabase>
     </rdf:Description>
 	</a:hasStore>
-	-->
 	
    <c:hasPortalParameters>
      <rdf:Description rdf:about="ncsa:cilogon.org,2010:60ab65ef06e31b4391afd976ec2f7269">
