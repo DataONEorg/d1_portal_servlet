@@ -39,7 +39,7 @@
                 <sqlc:adminHost>localhost</sqlc:adminHost>
                 <sqlc:adminJdbcDriver>org.postgresql.Driver</sqlc:adminJdbcDriver>
                 <sqlc:adminPassword>cilogon</sqlc:adminPassword>
-                <sqlc:adminPort rdf:datatype="http://www.w3.org/2001/XMLSchema#int">5432</sqlc:adminPort>
+                <sqlc:adminPort rdf:datatype="http://www.w3.org/2001/XMLSchema#int">9999</sqlc:adminPort>
                 <sqlc:adminUsername>cilogon</sqlc:adminUsername>
                 <sqlc:username>cilogon</sqlc:username>
             </rdf:Description>
@@ -49,7 +49,7 @@
                 <sqlc:host>localhost</sqlc:host>
                 <sqlc:jdbcDriver>org.postgresql.Driver</sqlc:jdbcDriver>
                 <sqlc:password>cilogon</sqlc:password>
-                <sqlc:port rdf:datatype="http://www.w3.org/2001/XMLSchema#int">5432</sqlc:port>
+                <sqlc:port rdf:datatype="http://www.w3.org/2001/XMLSchema#int">9999</sqlc:port>
                 <sqlc:username>cilogon</sqlc:username>
             </rdf:Description>
         </a:hasConnection>
