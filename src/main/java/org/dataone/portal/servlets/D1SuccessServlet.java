@@ -3,8 +3,10 @@ package org.dataone.portal.servlets;
 import org.cilogon.portal.CILogonService;
 import org.cilogon.portal.servlets.PortalAbstractServlet;
 import org.cilogon.portal.util.PortalCredentials;
+import org.cilogon.util.exceptions.CILogonException;
 import org.dataone.portal.PortalCertificateManager;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,13 +20,39 @@ import static edu.uiuc.ncsa.csd.security.KeyUtil.toPKCS1PEM;
  * on Jul 31, 2010 at  3:29:09 PM
  */
 public class D1SuccessServlet extends PortalAbstractServlet {
+	
+	protected int maxAttempts = 0;
+	
+	public void init(ServletConfig config) throws ServletException {
+		super.init(config);
+		// how many times should we wait for the transaction store to sync?
+		String maxAttemptsString = config.getServletContext().getInitParameter("org.dataone.transactionStore.maxAttempts");
+		if (maxAttemptsString != null) {
+			maxAttempts = Integer.parseInt(maxAttemptsString);
+		}
+	}
+	
     protected void doIt(HttpServletRequest request, HttpServletResponse response) throws Throwable {
         String identifier = clearCookie(request, response);
         if (identifier == null) {
             throw new ServletException("Error: No identifier for this delegation request was found. ");
         }
         CILogonService cis = new CILogonService(getPortalEnvironment());
-        PortalCredentials credential = cis.getCredential(identifier);
+    	PortalCredentials credential = null;
+    	int attempts = 0;
+    	while (credential == null) {
+	        try {
+	        	credential = cis.getCredential(identifier);
+	        } catch (CILogonException e) {
+				// sleep and try again, for a while until failing
+	        	warn(attempts + " - Error getting transaction, trying again. " + e.getMessage());
+	        	Thread.sleep(500);
+	        	attempts++;
+	        	if (attempts > maxAttempts) {
+	        		throw e;
+	        	}
+			}
+    	}
         
         // put the cookie for D1
     	PortalCertificateManager.getInstance().setCookie(identifier, response);
