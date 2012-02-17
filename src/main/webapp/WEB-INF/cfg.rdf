@@ -21,7 +21,7 @@
    </a:hasStore>
    -->
    
-   <!--
+   <!-- for file-based storage use this (single server deployment) -->
    <a:hasStore>
         <rdf:Description rdf:about="ncsa:cilogon.org,2010:3132773a288705127c03889f035dafff">
             <rdf:type rdf:resource="ncsa:cilogon.org,2010:/1.0/configuration/fileStore/"/>
@@ -29,44 +29,46 @@
             <e:lookupPath>/var/lib/tomcat6/webapps/portal/WEB-INF/lookups</e:lookupPath>
         </rdf:Description>
 	</a:hasStore>
-   -->
    
-   <a:hasStore>
-    <rdf:Description rdf:about="ncsa:cilogon.org,2010:6c5587a86b8be2dcfcf24346f7cafb7a">
-        <rdf:type rdf:resource="ncsa:cilogon.org,2010:/1.0/configuration/postgreStore/"/>
-        <a:hasAdminConnection>
-            <rdf:Description rdf:about="ncsa:cilogon.org,2010:7cfea30d6dbef0a0ea90c1ff395de3b6">
-                <sqlc:adminHost>localhost</sqlc:adminHost>
-                <sqlc:adminJdbcDriver>org.postgresql.Driver</sqlc:adminJdbcDriver>
-                <sqlc:adminPassword>cilogon</sqlc:adminPassword>
-                <sqlc:adminPort rdf:datatype="http://www.w3.org/2001/XMLSchema#int">9999</sqlc:adminPort>
-                <sqlc:adminUsername>cilogon</sqlc:adminUsername>
-                <sqlc:username>cilogon</sqlc:username>
-            </rdf:Description>
-        </a:hasAdminConnection>
-        <a:hasConnection>
-            <rdf:Description rdf:about="ncsa:cilogon.org,2010:4d86fa15d1f85ed6847abd173a4affe3">
-                <sqlc:host>localhost</sqlc:host>
-                <sqlc:jdbcDriver>org.postgresql.Driver</sqlc:jdbcDriver>
-                <sqlc:password>cilogon</sqlc:password>
-                <sqlc:port rdf:datatype="http://www.w3.org/2001/XMLSchema#int">9999</sqlc:port>
-                <sqlc:username>cilogon</sqlc:username>
-            </rdf:Description>
-        </a:hasConnection>
-        <a:hasDatabase>
-            <sqld:database rdf:about="ncsa:cilogon.org,2010:3db0046580a9ee0fa53f2b0127946a8a">
-                <a:hasTransactionTable>
-                    <rdf:Description rdf:about="ncsa:cilogon.org,2010:2a308533f8ffaa152177f63c34f3f186">
-                        <sqle:name>transactions</sqle:name>
-                        <sqle:prefix>portal</sqle:prefix>
-                    </rdf:Description>
-                </a:hasTransactionTable>
-                <sqld:databaseName>csd</sqld:databaseName>
-                <sqld:schema>csd_portal</sqld:schema>
-            </sqld:database>
-        </a:hasDatabase>
-    </rdf:Description>
+	<!-- for postgres-based storage use this (replicated server deployment) -->
+	<!--
+	<a:hasStore>
+		<rdf:Description rdf:about="ncsa:cilogon.org,2010:6c5587a86b8be2dcfcf24346f7cafb7a">
+		    <rdf:type rdf:resource="ncsa:cilogon.org,2010:/1.0/configuration/postgreStore/"/>
+		    <a:hasAdminConnection>
+		        <rdf:Description rdf:about="ncsa:cilogon.org,2010:7cfea30d6dbef0a0ea90c1ff395de3b6">
+		            <sqlc:adminHost>localhost</sqlc:adminHost>
+		            <sqlc:adminJdbcDriver>org.postgresql.Driver</sqlc:adminJdbcDriver>
+		            <sqlc:adminPassword>cilogon</sqlc:adminPassword>
+		            <sqlc:adminPort rdf:datatype="http://www.w3.org/2001/XMLSchema#int">9999</sqlc:adminPort>
+		            <sqlc:adminUsername>cilogon</sqlc:adminUsername>
+		            <sqlc:username>cilogon</sqlc:username>
+		        </rdf:Description>
+		    </a:hasAdminConnection>
+		    <a:hasConnection>
+		        <rdf:Description rdf:about="ncsa:cilogon.org,2010:4d86fa15d1f85ed6847abd173a4affe3">
+		            <sqlc:host>localhost</sqlc:host>
+		            <sqlc:jdbcDriver>org.postgresql.Driver</sqlc:jdbcDriver>
+		            <sqlc:password>cilogon</sqlc:password>
+		            <sqlc:port rdf:datatype="http://www.w3.org/2001/XMLSchema#int">9999</sqlc:port>
+		            <sqlc:username>cilogon</sqlc:username>
+		        </rdf:Description>
+		    </a:hasConnection>
+		    <a:hasDatabase>
+		        <sqld:database rdf:about="ncsa:cilogon.org,2010:3db0046580a9ee0fa53f2b0127946a8a">
+		            <a:hasTransactionTable>
+		                <rdf:Description rdf:about="ncsa:cilogon.org,2010:2a308533f8ffaa152177f63c34f3f186">
+		                    <sqle:name>transactions</sqle:name>
+		                    <sqle:prefix>portal</sqle:prefix>
+		                </rdf:Description>
+		            </a:hasTransactionTable>
+		            <sqld:databaseName>csd</sqld:databaseName>
+		            <sqld:schema>csd_portal</sqld:schema>
+		        </sqld:database>
+		    </a:hasDatabase>
+		</rdf:Description>
 	</a:hasStore>
+	-->
 	
    <c:hasPortalParameters>
      <rdf:Description rdf:about="ncsa:cilogon.org,2010:60ab65ef06e31b4391afd976ec2f7269">
