@@ -73,9 +73,9 @@
        <rdf:type rdf:resource="ncsa:cilogon.org,2010:/1.0/configuration/portal/"/>
        <!-- ***Start customization -->
        <!-- NOTE: these URLs typically match the deployment server  -->
-       <d:callbackUri rdf:resource="https://cn-dev-rr.dataone.org/portal/ready"/>
-       <d:failureUri rdf:resource="https://cn-dev-rr.dataone.org/portal/failure"/>
-       <d:successUri rdf:resource="https://cn-dev-rr.dataone.org/portal/success"/>
+       <d:callbackUri rdf:resource="https://cn.dataone.org/portal/ready"/>
+       <d:failureUri rdf:resource="https://cn.dataone.org/portal/failure"/>
+       <d:successUri rdf:resource="https://cn.dataone.org/portal/success"/>
        <d:portalName>DataONE Authentication Portal</d:portalName>
        <!-- NOTE: can use other "skins" to call dev/stage/sandbox CN servers: DataONEDev, DataONEStage, DataONESandbox  -->
        <d:portalSkin>DataONE</d:portalSkin>
