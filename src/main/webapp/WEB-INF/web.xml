@@ -22,7 +22,7 @@
         <description>Request a certificate</description>
         <display-name>startRequest</display-name>
         <servlet-name>startRequest</servlet-name>
-        <servlet-class>org.cilogon.portal.servlets.StartRequest</servlet-class>
+        <servlet-class>org.dataone.portal.servlets.StartRequest</servlet-class>
         <load-on-startup>0</load-on-startup>
     </servlet>
     <servlet-mapping>
@@ -143,7 +143,7 @@
 	<!-- NOTE: can override the CN URL for DataONE -->
 	<context-param>
 		<param-name>D1Client.CN_URL</param-name>
-		<param-value>https://cn.dataone.org/cn</param-value>
+		<param-value>https://cn-dev-rr.dataone.org/cn</param-value>
 	</context-param>
 	
 	<context-param>
