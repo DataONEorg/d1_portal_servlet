@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 
-import static edu.uiuc.ncsa.csd.security.CertUtil.toPEM;
-import static edu.uiuc.ncsa.csd.security.KeyUtil.toPKCS1PEM;
+import static edu.uiuc.ncsa.security.util.pkcs.CertUtil.toPEM;
+import static edu.uiuc.ncsa.security.util.pkcs.KeyUtil.toPKCS1PEM;
 
 /**
  * <p>Created by Jeff Gaynor<br>
