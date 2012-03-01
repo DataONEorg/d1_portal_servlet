@@ -143,7 +143,7 @@
 	<!-- NOTE: can override the CN URL for DataONE -->
 	<context-param>
 		<param-name>D1Client.CN_URL</param-name>
-		<param-value>https://cn-dev-rr.dataone.org/cn</param-value>
+		<param-value>https://cn.dataone.org/cn</param-value>
 	</context-param>
 	
 	<context-param>
