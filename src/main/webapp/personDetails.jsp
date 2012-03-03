@@ -34,7 +34,7 @@
 		</tr>
 		<tr>
 			<td class="label">Email</td>
-			<td><input type="text" readonly="readonly" size="60" name="email" value="<%=person != null ? person.getEmail(0) : "" %>"></td>
+			<td><input type="text" readonly="readonly" size="60" name="email" value="<%=(person != null && person.getEmailList() != null && person.getEmailList().size() > 0) ? person.getEmail(0) : "" %>"></td>
 		</tr>
 	</table>
 	<%
