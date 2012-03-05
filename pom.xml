@@ -97,7 +97,7 @@
         <dependency>
             <artifactId>d1_portal</artifactId>
             <groupId>org.dataone</groupId>
-            <version>1.0.0-RC2</version>
+            <version>1.0.0-RC3</version>
             <type>jar</type>
         </dependency>
         <dependency>
