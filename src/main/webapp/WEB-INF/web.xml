@@ -154,7 +154,7 @@
 	<!-- point to DataONE hazelcast config -->      
 	<context-param>
 		<param-name>hazelcast.config</param-name>
-		<param-value>/etc/dataone/storage/hazelcast.xml</param-value>
+		<param-value>/etc/dataone/portal/hazelcast.xml</param-value>
 	</context-param>
    
     <!--
