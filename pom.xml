@@ -4,14 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.dataone</groupId>
     <artifactId>d1_portal_servlet</artifactId>
-    <version>1.0.0-RC4-SNAPSHOT</version>
+    <version>1.0.0-RC5-SNAPSHOT</version>
     <name>d1_portal_servlet</name>
     <packaging>war</packaging>
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hazelcast.version>1.9.4.6</hazelcast.version>
-        <d1_portal_version>1.0.0-RC4-SNAPSHOT</d1_portal_version>
+        <d1_portal_version>1.0.0-RC5-SNAPSHOT</d1_portal_version>
     </properties>
     <build>
         <plugins>
