@@ -17,9 +17,7 @@
 function initTabs() {
 	$(function() {
 		$("#tabs").tabs();
-		$("#tabs").tabs("add", "#overview", "Overview");
-		$("#tabs").tabs("add", "#nodes", "Nodes");
-		
+		$("#tabs").tabs("add", "#nodes", "Node Status");		
 	});
 }
 </script>
@@ -34,10 +32,71 @@ function initTabs() {
 <div id="tabs">
 	<!-- place holder for tabs -->
 	<ul></ul>
-
-	<div id="overview">
+	
+	<div id="nodes">	
+		
 		<p>
-		DataONE network overview:
+		Environment: <em><%=D1Client.getCN().getNodeBaseServiceUrl() %></em>
+		</p>
+
+		<table width="100%">
+			<tr>
+				<th>Type</th>
+				<th>Identifier</th>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Objects</th>
+				<th>State</th>
+				<th>Ping</th>
+				<th>Last synchronized</th>
+			</tr>
+			<%
+			NodeList nodeList = D1Client.getCN().listNodes();
+			if (nodeList!= null) {
+				List<Node> nodes = nodeList.getNodeList();
+				for (Node node: nodes) {
+					String objectCountString = "-";
+					try {
+						ObjectList objectList = D1Client.getMN(node.getIdentifier()).listObjects(null);
+						int objectCount = objectList.getTotal();
+						objectCountString = Integer.toString(objectCount);
+					} catch (Exception e) {
+						// what can we really do?
+						objectCountString = "Error: " + e.getMessage();		
+						e.printStackTrace();
+					}
+					String lastSynch = "N/A";
+					try {
+						lastSynch = node.getSynchronization().getLastHarvested().toString();
+					} catch (Exception e) {
+						// CNs don't have that
+					}
+					String pingString = "unknown";
+					try {
+						pingString = node.getPing().getSuccess() + " at " + node.getPing().getLastSuccess().toString();
+					} catch (Exception e) {
+						
+					}
+			%>	
+					<tr>
+						<td><%=node.getType().xmlValue() %></td>
+						<td><%=node.getIdentifier().getValue() %></td>
+						<td><%=node.getName() %></td>
+						<td><%=node.getDescription() %></td>
+						<td><%=objectCountString %></td>
+						<td><%=node.getState().xmlValue() %></td>
+						<td><%=pingString %></td>
+						<td><%=lastSynch %></td>
+					</tr>
+			<%	
+				}
+			}
+			%>
+			</tr>
+		</table>
+		
+		<p>
+		DataONE network overview includes:
 		<ul>
 			<li>Name of the environment</li>
 			<li>Coordinating and Member nodes participating in the environment</li>
@@ -48,53 +107,9 @@ function initTabs() {
 		</p>
 		
 		<p>
-		This is a prototype and may be relocated
+		NOTE: This is a prototype and may be relocated
 		</p>
-	</div>
-	
-	<div id="nodes">	
-		<p>
-		Nodes:
-		</p>
-		<table>
-			<tr>
-				<td>Node</td>
-				<td>Object Count</td>
-				<td>State</td>
-				<td>Last synchronized</td>
-			</tr>
-			<%
-			NodeList nodeList = D1Client.getCN().listNodes();
-			if (nodeList!= null) {
-				List<Node> nodes = nodeList.getNodeList();
-				for (Node node: nodes) {
-					String objectCountString = "unavailable";
-					try {
-						ObjectList objectList = D1Client.getMN(node.getIdentifier()).listObjects(null);
-						int objectCount = objectList.getTotal();
-						objectCountString = Integer.toString(objectCount);
-					} catch (Exception e) {
-						// what can we really do?
-						objectCountString = "Error: " + e.getMessage();		
-						e.printStackTrace();
-					}
-			%>	
-					<tr>
-						<td><%=node.getIdentifier().getValue() %></td>
-						<td><%=objectCountString %></td>
-						<td><%=node.getState().xmlValue() %></td>
-						<td><%=node.getSynchronization().getLastHarvested() %></td>
-					</tr>
-			<%	
-				}
-			}
-			%>
-			</tr>
-		</table>
-		
-		<p>
-		This is a prototype and may be relocated
-		</p>
+
 	</div>
 
 </div>
