@@ -62,7 +62,7 @@ function initTabs() {
 						objectCountString = Integer.toString(objectCount);
 					} catch (Exception e) {
 						// what can we really do?
-						objectCountString = "Error: " + e.getMessage();		
+						objectCountString = "Error: " + "<pre>" + e.getMessage() + "</pre>";		
 						e.printStackTrace();
 					}
 					String lastSynch = "N/A";
