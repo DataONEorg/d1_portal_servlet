@@ -61,7 +61,7 @@ function initTabs() {
 	if (pid != null) {
 %>
 		<p>
-		Results for <em><%=pid.getValue() %></em>
+		Resolve results for <em><%=pid.getValue() %></em>
 		</p>
 			<%
 			String errorMsg = null;
@@ -94,18 +94,18 @@ function initTabs() {
 						}
 					} catch (Exception e) {
 						// crudely report an error
-						getString = "<pre>" + e.getMessage() + "</pre>";
+						getString = "<pre>" + e. getClass().getName() + " - "+ e.getMessage() + "</pre>";
 					}
 					String systemMetadataString = "unavailable";
 					try {
-						// TODO: check the stream for content?
+						// TODO: more useful part of SM to display?
 						SystemMetadata sm = D1Client.getMN(node).getSystemMetadata(null, pid);
 						if (sm != null) {
 							systemMetadataString = "{" + sm.getChecksum().getAlgorithm() + "}" + sm.getChecksum().getValue();
 						}
 					} catch (Exception e) {
 						// crudely report an error
-						systemMetadataString = "<pre>" + e.getMessage() + "</pre>";
+						systemMetadataString = "<pre>" + e. getClass().getName() + " - "+ e.getMessage() + "</pre>";
 					}
 					// TODO: log count
 					String logString = "check not implemented";
@@ -120,7 +120,62 @@ function initTabs() {
 				}
 			%>
 				</table>
+
+				<p>Other nodes that may contain the object</p>
+	
+				<table width="100%">
+					<tr>
+						<th>Location</th>
+						<th>Get</th>
+						<th>System Metadata</th>
+						<th>Log</th>
+					</tr>
 			<%
+			
+				// show results for all other nodes
+				NodeList nodeList = D1Client.getCN().listNodes();
+				if (nodeList!= null) {
+					List<Node> nodes = nodeList.getNodeList();
+					for (Node n: nodes) {
+						NodeReference node = n.getIdentifier();
+						String getString = "unavailable";
+						try {
+							// TODO: check the stream for content?
+							InputStream result = D1Client.getMN(node).get(null, pid);
+							if (result != null) {
+								getString = "success";
+							}
+						} catch (Exception e) {
+							// crudely report an error
+							getString = "<pre>" + e. getClass().getName() + " - "+ e.getMessage() + "</pre>";
+						}
+						String systemMetadataString = "unavailable";
+						try {
+							// TODO: more useful part of SM to display?
+							SystemMetadata sm = D1Client.getMN(node).getSystemMetadata(null, pid);
+							if (sm != null) {
+								systemMetadataString = "{" + sm.getChecksum().getAlgorithm() + "}" + sm.getChecksum().getValue();
+							}
+						} catch (Exception e) {
+							// crudely report an error
+							systemMetadataString = "<pre>" + e. getClass().getName() + " - "+ e.getMessage() + "</pre>";
+						}
+						// TODO: log count
+						String logString = "check not implemented";
+						%>
+						<tr>
+							<td><%=node.getValue() %></td>
+							<td><%=getString %></td>
+							<td><%=systemMetadataString %></td>
+							<td><%=logString %></td>
+						</tr>
+						<%
+					}
+				%>
+				</table>
+				<%
+				}
+			
 			} else {
 			%>
 				<p><%=errorMsg %></p>
