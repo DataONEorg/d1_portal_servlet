@@ -11,7 +11,8 @@
 <%@page import="java.io.InputStream"%>
 <%@page import="org.dataone.service.types.v1.SystemMetadata"%>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
+
+<%@page import="org.dataone.configuration.Settings"%><html>
 <head>
 <title>DataONE PID Status</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -46,6 +47,10 @@ function initTabs() {
 		</p>
 
 <%
+	// disable the local cache for these requests
+	Settings.getConfiguration().setProperty("D1Client.useLocalCache", false);
+
+
 	// get the PID from the request if it is there
 	Identifier pid = null;
 	if (request.getParameter("pid") != null) {
@@ -147,7 +152,9 @@ function initTabs() {
 							}
 						} catch (Exception e) {
 							// crudely report an error
-							getString = "<pre>" + e. getClass().getName() + " - "+ e.getMessage() + "</pre>";
+							getString = "<pre>" + e. getClass().getName() + "</pre>";
+							getString += "<pre>" + e.getMessage() + "</pre>";
+
 						}
 						String systemMetadataString = "unavailable";
 						try {
@@ -158,7 +165,8 @@ function initTabs() {
 							}
 						} catch (Exception e) {
 							// crudely report an error
-							systemMetadataString = "<pre>" + e. getClass().getName() + " - "+ e.getMessage() + "</pre>";
+							systemMetadataString = "<pre>" + e. getClass().getName() + "</pre>";
+							systemMetadataString += "<pre>" + e.getMessage() + "</pre>";
 						}
 						// TODO: log count
 						String logString = "check not implemented";
