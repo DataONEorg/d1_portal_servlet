@@ -73,7 +73,8 @@ function initTabs() {
 					}
 					String pingString = "unknown";
 					try {
-						pingString = node.getPing().getSuccess() + " at " + node.getPing().getLastSuccess().toString();
+						pingString = D1Client.getMN(node.getIdentifier()).ping().toString();
+						//pingString = node.getPing().getSuccess() + " at " + node.getPing().getLastSuccess().toString();
 					} catch (Exception e) {
 						
 					}
