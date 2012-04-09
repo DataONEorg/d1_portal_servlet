@@ -153,18 +153,20 @@ function initTabs() {
 		$("#tabs").tabs("add", "#myIdentities", "My Identities");
 		$("#tabs").tabs("add", "#groupManagement", "Group Management");
 		$("#tabs").tabs("add", "#accountVerification", "Verification");
-		// do we have a person registered yet?
-		var isRegistered = <%=person != null ? true : false %>;
-		if (!isRegistered) {
-			// disable the other tabs until we are registered
-			$("#tabs").tabs( "option", "disabled", [1, 2, 3] );
-		}
 		// TODO: figure out admins
 		var isAdmin = false;
 		if (!isAdmin) {
 			// disable the verification tab for non-admins
 			$("#tabs").tabs( "option", "disabled", [3] );
 		}
+		// do we even have a person registered yet?
+		// check this after the admin check otherwise the non-admin tabs are activated again
+		var isRegistered = <%=person != null ? true : false %>;
+		if (!isRegistered) {
+			// disable the other tabs until we are registered
+			$("#tabs").tabs( "option", "disabled", [1, 2, 3] );
+		}
+		
 	});
 }
 function initDialogs() {
