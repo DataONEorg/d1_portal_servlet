@@ -212,7 +212,14 @@
 	    <dispatcher>REQUEST</dispatcher>
 	</filter-mapping>
 	
+	<!-- for session replication when deployed with round robin DNS -->
 	<listener>
 	    <listener-class>com.hazelcast.web.SessionListener</listener-class>
 	</listener>
+	
+	<!-- use this override for SSL JDBC -->
+	<listener>
+		<listener-class>org.cilogon.portal.servlets.PortalBootstrapper</listener-class>
+	</listener>
+	
 </web-app>
