@@ -43,7 +43,7 @@ import static edu.uiuc.ncsa.security.util.pkcs.KeyUtil.toPKCS1PEM;
  */
 public class D1SuccessServlet extends PortalAbstractServlet {
 	
-	protected int maxAttempts = 0;
+	protected int maxAttempts = 10;
 	
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
