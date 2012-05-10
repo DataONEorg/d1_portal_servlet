@@ -74,6 +74,8 @@ public class D1SuccessServlet extends PortalAbstractServlet {
 	        	if (attempts > maxAttempts) {
 	        		throw e;
 	        	}
+	        	// reset for the loop
+	        	credential = null;
 			}
     	}
         
