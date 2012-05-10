@@ -62,6 +62,7 @@ public class D1SuccessServlet extends PortalAbstractServlet {
         CILogonService cis = new CILogonService(getPortalEnvironment());
     	PortalCredentials credential = null;
     	int attempts = 0;
+    	warn("trying credental lookup n times: "  + maxAttempts);
     	while (credential == null) {
 	        try {
 	        	credential = cis.getCredential(identifier);
