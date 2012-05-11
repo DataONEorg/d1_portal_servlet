@@ -15,7 +15,7 @@ X509Certificate certificate = PortalCertificateManager.getInstance().getCertific
 PrivateKey key = PortalCertificateManager.getInstance().getPrivateKey(request);
 
 // if we don't have a certificate, then we aren't logged in
-if (certificate == null) {
+if (certificate == null || key == null) {
 	response.sendRedirect(request.getContextPath());
 	return;
 }
