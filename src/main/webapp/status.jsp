@@ -57,7 +57,7 @@ function initTabs() {
 				for (Node node: nodes) {
 					String objectCountString = "-";
 					try {
-						ObjectList objectList = D1Client.getMN(node.getIdentifier()).listObjects(null);
+						ObjectList objectList = D1Client.getMN(node.getIdentifier()).listObjects(null, null, null, null, null, null, 10);
 						int objectCount = objectList.getTotal();
 						objectCountString = Integer.toString(objectCount);
 					} catch (Exception e) {
