@@ -3,6 +3,8 @@
 <%@page import="org.dataone.service.types.v1.Group"%>
 <%@page import="org.dataone.service.types.v1.Subject"%>
 <%@page import="org.dataone.service.types.v1.Person"%>
+<%@page import="java.util.Map"%>
+<%@page import="java.util.HashMap"%>
 
 <%
 	// it will be either a subject or a groupName
@@ -22,6 +24,7 @@
 	} catch (Exception e) {
 		// ignore for now -- happens when account is not registered
 		%>
+			
 			<option value="NONE">
 				None Found
 			</option>	
@@ -29,6 +32,26 @@
 		return;
 	}
 
+	// the display names
+	Map<Subject, String> displayNames = new HashMap<Subject, String>();
+	if (subjectInfo != null && subjectInfo.getPersonList() != null) {
+		for (Person p: subjectInfo.getPersonList()) {
+			String displayName = p.getFamilyName();
+			if (p.getGivenNameList() != null && !p.getGivenNameList().isEmpty()) {
+				displayName = p.getGivenName(0) + " " + displayName;
+			}
+			displayName += " (" + p.getSubject().getValue() + ")";
+			displayNames.put(p.getSubject(), displayName);
+		}
+	}
+	if (subjectInfo != null && subjectInfo.getGroupList() != null) {
+		for (Group g: subjectInfo.getGroupList()) {
+			String displayName = g.getGroupName();
+			displayName += " (" + g.getSubject().getValue() + ")";
+			displayNames.put(g.getSubject(), displayName);
+		}
+	}
+	
 	if (isGroup && subjectInfo != null && subjectInfo.getGroupList() != null) {
 		// include the Groups
 		Group group = null;
@@ -48,8 +71,8 @@
 	<%
 	
 		for (Subject s: group.getHasMemberList()) {
-			// TODO: lookup the member's name
-			String memberName = s.getValue();
+			// lookup the member's name
+			String memberName = displayNames.get(s);
 	%>	
 			<option value="<%=s.getValue()%>">
 				<%=memberName%> (<%=s.getValue()%>)
@@ -80,8 +103,8 @@
 	
 		// include the groups they are a member of
 		for (Subject s: person.getIsMemberOfList()) {
-			// TODO: lookup the group's name
-			String groupName = s.getValue();
+			// lookup the group's name
+			String groupName = displayNames.get(s);
 	%>	
 			<option value="<%=s.getValue()%>">
 				<%=groupName%> (<%=s.getValue()%>)
