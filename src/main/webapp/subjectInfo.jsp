@@ -57,7 +57,7 @@
 			}
 		}
 	%>
-		<option value="<%=g.getSubject().getValue()%>">
+		<option value="<%=group.getSubject().getValue()%>">
 			<%=group.getGroupName()%> (<%=group.getSubject().getValue()%>)
 		</option>	
 	<%
