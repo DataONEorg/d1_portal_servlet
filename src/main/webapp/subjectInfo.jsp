@@ -28,23 +28,6 @@
 		<%
 		return;
 	}
-	
-	if (subjectInfo != null && isGroup) {
-		// include the Groups
-		boolean isFirst = true;
-		for (Group g: subjectInfo.getGroupList()) {
-			// omit the first entry which is this group
-			if (isGroup && isFirst) {
-				isFirst = false;
-				continue;
-			}
-	%>
-			<option value="<%=g.getSubject().getValue()%>">
-				<%=g.getGroupName()%> (<%=g.getSubject().getValue()%>)
-			</option>		
-	<%
-		}
-	}
 
 	if (isGroup && subjectInfo != null && subjectInfo.getGroupList() != null) {
 		// include the Groups
@@ -57,9 +40,11 @@
 			}
 		}
 	%>
+		<!-- do not show group as a member of itself 
 		<option value="<%=group.getSubject().getValue()%>">
 			<%=group.getGroupName()%> (<%=group.getSubject().getValue()%>)
-		</option>	
+		</option>
+		-->
 	<%
 	
 		for (Subject s: group.getHasMemberList()) {
@@ -86,9 +71,11 @@
 			}
 		}
 	%>	
+		<!-- do not show member in group list
 		<option value="<%=person.getSubject().getValue()%>">
 			<%=person.getFamilyName()%> (<%=person.getSubject().getValue()%>)
 		</option>				
+		-->
 	<%
 	
 		// include the groups they are a member of
