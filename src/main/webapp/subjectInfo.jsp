@@ -75,7 +75,7 @@
 			String memberName = displayNames.get(s);
 	%>	
 			<option value="<%=s.getValue()%>">
-				<%=memberName%> (<%=s.getValue()%>)
+				<%=memberName%>
 			</option>				
 	<%
 		}
@@ -107,7 +107,7 @@
 			String groupName = displayNames.get(s);
 	%>	
 			<option value="<%=s.getValue()%>">
-				<%=groupName%> (<%=s.getValue()%>)
+				<%=groupName%>
 			</option>				
 	<%
 		}
