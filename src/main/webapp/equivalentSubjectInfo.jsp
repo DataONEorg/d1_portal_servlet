@@ -31,8 +31,8 @@
 				break;
 			}
 		}
-		if (person.getEquivalentIdentities() != null && !person.getEquivalentIdentities().isEmpty()) {
-			for (Subject s: person.getEquivalentIdentities()) {
+		if (person.getEquivalentIdentityList() != null && !person.getEquivalentIdentityList().isEmpty()) {
+			for (Subject s: person.getEquivalentIdentityList()) {
 				// TODO: get the full name for display
 				String equivalentName = s.getValue();
 		%>
