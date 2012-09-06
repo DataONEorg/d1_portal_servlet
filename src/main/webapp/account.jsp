@@ -81,7 +81,7 @@ function createGroup() {
 //the current equivalent ids
 function listExistingEquivalentIdentities() {
 	// get the current equivalent identities
-	makeAjaxCall("subjectInfo.jsp", "identityLookupForm", "existingEquivalentIdentities");
+	makeAjaxCall("equivalentSubjectInfo.jsp", "identityLookupForm", "existingEquivalentIdentities");
 }
 //the current pending equivalent ids
 function listPendingEquivalentIdentities() {

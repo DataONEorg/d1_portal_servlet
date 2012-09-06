@@ -8,9 +8,11 @@
 	SubjectInfo subjectInfo = D1Client.getCN().listSubjects(null, query, null, 0, -1);
 	if (subjectInfo != null && subjectInfo.getGroupList() != null) {
 		for (Group g: subjectInfo.getGroupList()) {
+			String displayName = g.getGroupName();
+			displayName += " (" + g.getSubject().getValue() + ")";
 	%>
 			<option value="<%=g.getSubject().getValue()%>">
-				<%=g.getGroupName()%> (<%=g.getSubject().getValue()%>)
+				<%=displayName%>
 			</option>				
 	<%
 		}
