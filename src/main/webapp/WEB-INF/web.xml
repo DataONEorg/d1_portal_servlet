@@ -151,12 +151,7 @@
 		<param-value>10</param-value>
 	</context-param>
 	
-	<!-- point to DataONE hazelcast config -->      
-	<context-param>
-		<param-name>hazelcast.config</param-name>
-		<param-value>/etc/dataone/portal/hazelcast.xml</param-value>
-	</context-param>
-   
+     
     <!--
     Specify the name of the configuration within the configuration file, if needed. Default behavior
     is to assume that there is exactly on in  the file one and use that if
@@ -174,6 +169,11 @@
 	<filter>
 	  <filter-name>hazelcast-filter</filter-name>
 	  <filter-class>com.hazelcast.web.WebFilter</filter-class>
+	  <!-- point to DataONE hazelcast config -->           
+	  <init-param>
+	      <param-name>config-location</param-name>
+	      <param-value>/etc/dataone/portal/hazelcast.xml</param-value>
+	  </init-param>
 	  <!--
 	      Name of the distributed map storing
 	      your web session objects
@@ -203,6 +203,11 @@
 	        <param-name>debug</param-name>
 	        <param-value>true</param-value>
 	    </init-param>
+            <init-param>
+                <param-name>instance-name</param-name>
+                <param-value>dataonePortalInstance</param-value>
+            </init-param>
+
 	</filter>
 	<filter-mapping>
 	    <filter-name>hazelcast-filter</filter-name>
