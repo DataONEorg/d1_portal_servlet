@@ -89,7 +89,7 @@ public class IdentityServlet extends HttpServlet {
 		X509Certificate certificate = null;
 		
 		// can we set this?
-		request.setCharacterEncoding("UTF-8");
+		//request.setCharacterEncoding("UTF-8");
 
 		//log.debug("request characterEncoding: " + request.getCharacterEncoding());
 		System.out.println("request characterEncoding: " + request.getCharacterEncoding());
