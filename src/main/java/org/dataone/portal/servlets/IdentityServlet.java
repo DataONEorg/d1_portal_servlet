@@ -88,8 +88,9 @@ public class IdentityServlet extends HttpServlet {
 		Subject subject = null;
 		X509Certificate certificate = null;
 
-		log.debug("request characterEncoding: " + request.getCharacterEncoding());
-    	
+		//log.debug("request characterEncoding: " + request.getCharacterEncoding());
+		System.out.println("request characterEncoding: " + request.getCharacterEncoding());
+
 		// get the certificate, if we have it
 		try {
 	    	certificate = PortalCertificateManager.getInstance().getCertificate(request);
@@ -136,11 +137,14 @@ public class IdentityServlet extends HttpServlet {
 	    		// gather the information needed for this method
 		    	Person person = new Person();
 		    	String familyName = request.getParameter("familyName");
-				log.debug("familyName: " + familyName);
+				//log.debug("familyName: " + familyName);
+				System.out.println("familyName: " + familyName);
 		    	String givenName = request.getParameterValues("givenName")[0];
-				log.debug("givenName: " + givenName);
+				//log.debug("givenName: " + givenName);
+		    	System.out.println("givenName: " + givenName);
 		    	String email = request.getParameterValues("email")[0];
-				log.debug("email: " + email);
+				//log.debug("email: " + email);
+				System.out.println("email: " + email);
 				person.setFamilyName(familyName);
 				person.addEmail(email);
 				person.addGivenName(givenName);
