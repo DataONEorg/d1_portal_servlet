@@ -15,20 +15,24 @@
 <script type="text/javascript">
 
 function makeAjaxCall(url, formId, divId, callback) {
-	$('#' + divId).load(
-		url, //url
-		$("#" + formId).serialize(), //data
-		function(response, status, xhr) {
-			if (status == "error") {
-				var msg = "Sorry but there was an error: ";
-				$("#error").html(msg + xhr.status + " " + xhr.statusText);
+	
+	$.post(
+			url, //url
+			$("#" + formId).serialize(), //data
+			function(response, status, xhr) {
+				if (status == "error") {
+					var msg = "Sorry but there was an error: ";
+					$("#error").html(msg + xhr.status + " " + xhr.statusText);
+				}
+				// set the content for the result
+				$('#' + divId).html(response);
+				// call the callback
+				if (callback) {
+					setTimeout(callback, 0);
+				}
 			}
-			// call the callback
-			if (callback) {
-				setTimeout(callback, 0);
-			}
-		}
-	);
+		);
+	
 }
 function listPeople() {
 	makeAjaxCall("listPeople.jsp", "equivalentIdentitiesForm", "subject");
