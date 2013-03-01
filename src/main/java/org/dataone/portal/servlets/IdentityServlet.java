@@ -301,7 +301,7 @@ public class IdentityServlet extends HttpServlet {
 		}
 		
 		// write the response
-        response.setContentType("text/html");
+        response.setContentType("text/html; charset=UTF-8");
         PrintWriter pw = response.getWriter();
         // just print the plain text for AJAX
         pw.println(msg);
