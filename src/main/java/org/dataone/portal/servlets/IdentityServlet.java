@@ -36,7 +36,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cilogon.portal.util.PortalCredentials;
 import org.dataone.client.D1Client;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
@@ -47,6 +46,8 @@ import org.dataone.service.types.v1.Session;
 import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
 import org.dataone.service.types.v1.SubjectList;
+
+import edu.uiuc.ncsa.myproxy.oa4mp.client.Asset;
 
 /**
  * <p>Created by Ben Leinfelder<br>
@@ -264,7 +265,7 @@ public class IdentityServlet extends HttpServlet {
 	    		String token = request.getParameter("token");
 	    		if (token != null) {
 	    			// look up via the token, not the cookie
-	    			certificate = PortalCertificateManager.getInstance().getCredentials(token).getX509Certificate();
+	    			certificate = PortalCertificateManager.getInstance().getCredentials(token).getCertificates()[0];
 	    		}
 	    		// tell them who is logged in with that certificate
 	    		if (certificate != null) {
@@ -276,8 +277,8 @@ public class IdentityServlet extends HttpServlet {
     			msg = Boolean.FALSE.toString();
 	    		// check for the certificate by token
 	    		String token = request.getParameter("token");
-	    		PortalCredentials credentials = PortalCertificateManager.getInstance().getCredentials(token);
-	    		if (credentials != null && credentials.getX509Certificate() != null) {
+	    		Asset credentials = PortalCertificateManager.getInstance().getCredentials(token);
+	    		if (credentials != null && credentials.getCertificates() != null) {
 	    			msg = Boolean.TRUE.toString();
 	    		}
 	    	}

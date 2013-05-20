@@ -24,13 +24,16 @@ package org.cilogon.portal.servlets;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
+
 import java.io.PrintWriter;
 
 /**
  * <p>Created by Jeff Gaynor<br>
  * on Aug 11, 2010 at  10:11:13 AM
  */
-public class FailureServlet extends PortalAbstractServlet {
+public class FailureServlet extends ClientServlet {
     protected void doIt(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Throwable {
         clearCookie(httpServletRequest, httpServletResponse); // clear out old session info
         httpServletResponse.setContentType("text/html");

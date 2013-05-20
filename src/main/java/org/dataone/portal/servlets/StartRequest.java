@@ -22,20 +22,16 @@
 
 package org.dataone.portal.servlets;
 
-import edu.uiuc.ncsa.security.core.util.Benchmarker;
-import edu.uiuc.ncsa.security.servlet.PresentableState;
-import org.cilogon.portal.CILogonService;
-import org.cilogon.portal.servlets.PresentableServlet;
-
-import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.URI;
 
-import static edu.uiuc.ncsa.security.servlet.JSPUtil.fwd;
-import static org.cilogon.util.CILogon.CERT_REQUEST_ID;
+import edu.uiuc.ncsa.myproxy.oa4mp.client.OA4MPResponse;
+import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
+import edu.uiuc.ncsa.myproxy.oa4mp.client.storage.AssetStoreUtil;
+import edu.uiuc.ncsa.security.core.Identifier;
+import edu.uiuc.ncsa.security.core.exceptions.ServerSideException;
+import edu.uiuc.ncsa.security.servlet.JSPUtil;
 
 /**
  * A very simple sample servlet showing how a portal can start delegation. This just does the
@@ -44,47 +40,54 @@ import static org.cilogon.util.CILogon.CERT_REQUEST_ID;
  * <p>Created by Jeff Gaynor<br>
  * on Jun 18, 2010 at  2:10:58 PM
  */
-public class StartRequest extends PresentableServlet {
+public class StartRequest extends ClientServlet {
 
+	@Override
     protected void doIt(HttpServletRequest request, HttpServletResponse response) throws Throwable {
-        ServletState ss = newServletState(request, response);
+        info("1.a. Starting transaction");
+        OA4MPResponse gtwResp = null;
+        // Drumroll please: here is the work for this call.
         try {
-            prepare(ss);
-            Benchmarker bm = new Benchmarker(this);
-            bm.msg("2.a. Starting request");
-            String identifier = request.getParameter("identifier");
-            if (identifier == null) {
-                identifier = "id-" + System.nanoTime();
-            }
-            String target = request.getParameter("target");
-        	if (target != null) {
-            	request.getSession().setAttribute("target", target);
-        	}
-            // Set the cookie
-            debug("2.a. Adding cookie for identifier = " + identifier);
-            Cookie cookie = new Cookie(CERT_REQUEST_ID, identifier);
+            Identifier id = AssetStoreUtil.createID();
+            gtwResp = getOA4MPService().requestCert(id);
+            // if there is a store, store something in it.
+            Cookie cookie = new Cookie(OA4MP_CLIENT_REQUEST_ID, id.getUri().toString());
             response.addCookie(cookie);
-            // Drumroll please: The actual work for this servlet.
-            CILogonService cis = new CILogonService(getPortalEnvironment());
-            URI redirectUri = cis.requestCredential(identifier);
-            // Now that the work is done, we have to redirect the user to the authorization page
-            bm.msg("2.d. Got redirect uri");
-            present(ss);
-            response.sendRedirect(redirectUri.toString());
+
         } catch (Throwable t) {
-            handleException( t, request, response);
+
+            if (t instanceof ServerSideException) {
+                ServerSideException sse = (ServerSideException) t;
+                //nothing was, in fact, returned from the server.
+                if (!sse.isTrivial()) {
+                    if (getCE().isDebugOn()) {
+                        t.printStackTrace();
+                    }
+                    for (String key : sse.getQueryParameters().keySet()) {
+                        request.setAttribute(key, sse.getQueryParameters().get(key));
+                    }
+                    String contextPath = request.getContextPath();
+                    if (!contextPath.endsWith("/")) {
+                        contextPath = contextPath + "/";
+                    }
+                    request.setAttribute("action", contextPath);
+                    JSPUtil.handleException(sse.getCause(), request, response, "/pages/client-error.jsp");
+                    if (sse.getRedirect() != null) {
+                        response.sendRedirect(sse.getRedirect().toString());
+                    }
+                    return;
+                }
+
+                JSPUtil.handleException(t, request, response, "/pages/client-error.jsp");
+                return;
+            }
+            throw t;
         }
-
-    }
-
-    public void prepare(PresentableState pState) throws Throwable {
-    }
-
-    public void present(PresentableState pState) throws Throwable {
-    }
-
-    public void handleError(PresentableState pState,
-                            Throwable t) throws IOException, ServletException {
-        fwd(pState.getRequest(),  pState.getResponse(), "/error.jsp");
+        
+        String target = request.getParameter("target");
+    	if (target != null) {
+        	request.getSession().setAttribute("target", target);
+    	}
+        response.sendRedirect(gtwResp.getRedirect().toString());
     }
 }

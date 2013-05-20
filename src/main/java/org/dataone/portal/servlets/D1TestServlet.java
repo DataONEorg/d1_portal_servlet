@@ -30,13 +30,14 @@ import java.security.cert.X509Certificate;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.cilogon.portal.servlets.PortalAbstractServlet;
 import org.dataone.portal.PortalCertificateManager;
+
+import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
 
 /**
  * <p>Created by Ben Leinfelder<br>
  */
-public class D1TestServlet extends PortalAbstractServlet {
+public class D1TestServlet extends ClientServlet {
     protected void doIt(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Throwable {
         
         // get the certificate, if we have it
