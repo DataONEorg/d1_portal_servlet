@@ -22,33 +22,34 @@
 
 package org.dataone.portal.servlets;
 
-import org.cilogon.portal.CILogonService;
-import org.cilogon.portal.servlets.PortalAbstractServlet;
-import org.cilogon.portal.util.PortalCredentials;
-import org.cilogon.util.exceptions.CILogonException;
 import org.dataone.portal.PortalCertificateManager;
+
+import edu.uiuc.ncsa.myproxy.oa4mp.client.AssetResponse;
+import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
+import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
+import edu.uiuc.ncsa.security.servlet.JSPUtil;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
+import java.security.cert.X509Certificate;
 
 import static edu.uiuc.ncsa.security.util.pkcs.CertUtil.toPEM;
-import static edu.uiuc.ncsa.security.util.pkcs.KeyUtil.toPKCS1PEM;
 
 /**
  * <p>Created by Jeff Gaynor<br>
  * on Jul 31, 2010 at  3:29:09 PM
  */
-public class D1SuccessServlet extends PortalAbstractServlet {
+public class D1SuccessServlet extends ClientServlet {
 	
 	protected int maxAttempts = 10;
 	
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		// how many times should we wait for the transaction store to sync?
-		String maxAttemptsString = config.getServletContext().getInitParameter("org.dataone.transactionStore.maxAttempts");
+		String maxAttemptsString = config.getServletContext().getInitParameter("org.dataone.assetStore.maxAttempts");
 		if (maxAttemptsString != null) {
 			maxAttempts = Integer.parseInt(maxAttemptsString);
 		}
@@ -59,25 +60,32 @@ public class D1SuccessServlet extends PortalAbstractServlet {
         if (identifier == null) {
             throw new ServletException("Error: No identifier for this delegation request was found. ");
         }
-        CILogonService cis = new CILogonService(getPortalEnvironment());
-    	PortalCredentials credential = null;
-    	int attempts = 0;
-    	warn("trying credental lookup n times: "  + maxAttempts);
-    	while (credential == null) {
-	        try {
-	        	credential = cis.getCredential(identifier);
-	        } catch (CILogonException e) {
-				// sleep and try again, for a while until failing
-	        	warn(attempts + " - Error getting transaction, trying again. " + e.getMessage());
-	        	Thread.sleep(500);
-	        	attempts++;
-	        	if (attempts > maxAttempts) {
-	        		throw e;
-	        	}
-	        	// reset for the loop
-	        	credential = null;
-			}
-    	}
+        info("2.a. Getting token and verifier.");
+        String token = request.getParameter(TOKEN_KEY);
+        String verifier = request.getParameter(VERIFIER_KEY);
+        if (token == null || verifier == null) {
+            warn("2.a. The token is " + (token==null?"null":token) + " and the verifier is " + (verifier==null?"null":verifier));
+            GeneralException ge = new GeneralException("Error: This servlet requires parameters for the token and verifier. It cannot be called directly.");
+            request.setAttribute("exception", ge);
+            JSPUtil.fwd(request, response, "/pages/client-error.jsp");
+            return;
+        }
+        info("2.a Token and verifier found.");
+        X509Certificate cert = null;
+        AssetResponse assetResponse = null;
+
+        try {
+            info("2.a. Getting the cert(s) from the service");
+            assetResponse = getOA4MPService().getCert(token, verifier);
+            cert = assetResponse.getX509Certificates()[0];
+            // The work in this call
+        } catch (Throwable t) {
+            warn("2.a. Exception from the server: " + t.getCause().getMessage());
+            error("Exception while trying to get cert. message:" + t.getMessage());
+            request.setAttribute("exception", t);
+            JSPUtil.fwd(request, response, "/pages/client-error.jsp");
+            return;
+        }
         
         // put the cookie for D1
     	PortalCertificateManager.getInstance().setCookie(identifier, response);
@@ -115,15 +123,15 @@ public class D1SuccessServlet extends PortalAbstractServlet {
                 "<ul>\n" +
                 "    <li><a href=\"javascript:unhide('showSubject');\">Show/Hide subject</a></li>\n" +
                 "    <div id=\"showSubject\" class=\"unhidden\">\n" +
-                "        <p><pre>" + credential.getX509Certificate().getSubjectDN().toString() + "</pre>\n" +
+                "        <p><pre>" + cert.getSubjectDN().toString() + "</pre>\n" +
                 "    </div>\n" +
                 "    <li><a href=\"javascript:unhide('showCert');\">Show/Hide certificate</a></li>\n" +
                 "    <div id=\"showCert\" class=\"hidden\">\n" +
-                "        <p><pre>" + toPEM(credential.getX509Certificate()) + "</pre>\n" +
+                "        <p><pre>" + toPEM(cert) + "</pre>\n" +
                 "    </div>\n" +
                 "    <li><a href=\"javascript:unhide('showKey');\">Show/Hide private key</a></li>\n" +
                 "    <div id=\"showKey\" class=\"hidden\">\n" +
-                "        <p><pre>" + toPKCS1PEM(credential.getPrivateKey()) + "</pre>\n" +
+                "        <p><pre>" + "hidden for security" + "</pre>\n" +
                 "    </div>\n" +
                 "\n" +
                 "</ul>\n" +

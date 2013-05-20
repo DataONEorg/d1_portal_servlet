@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<client>
+		<callbackUri>https://cn.dataone.org/portal/ready</callbackUri>
+		<privateKeyFile>/etc/dataone/client/private/oauth-privkey.pk8</privateKeyFile>
+		<publicKeyFile>/etc/dataone/client/certs/oauth-pubkey.pem</publicKeyFile>
+		<serviceUri>https://test.cilogon.org/oauth</serviceUri>
+		<skin>DataONE</skin>
+		<lifetime>864000</lifetime>
+		<id>myproxy:delegation,2011:/client/YOUR_ID_HERE</id>
+
+		<postgresql 
+			username="oa4mp" 
+			password="oa4mp" 
+			driver="org.postgresql.Driver"
+			host="cn.dataone.org"
+			port="5432" 
+			schema="oauth" 
+			database="oauth" 
+			tablename="assets" 
+			prefix="oauth">
+			<transactions/>
+			<clients/>
+			<clientApprovals/>
+		</postgresql>
+		
+		<enableAssetCleanup>true</enableAssetCleanup>
+		<maxAssetLifetime>865000</maxAssetLifetime>
+	</client>
+</config>

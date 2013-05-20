@@ -1,0 +1,54 @@
+<!ELEMENT config (client)*>
+
+<!ATTLIST client
+     name CDATA #IMPLIED
+     version CDATA #IMPLIED
+     debug CDATA #IMPLIED>
+<!ELEMENT client (id|serviceUri|callbackUri|lifetime|publicKeyFile|privateKeyFile|
+    logging|
+    memoryStore|
+    fileStore|
+    postgresql|
+    mysql)*>
+
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT serviceUri (#PCDATA)>
+<!ELEMENT callbackUri (#PCDATA)>
+<!ELEMENT lifetime (#PCDATA)>
+<!ELEMENT publicKeyFile (#PCDATA)>
+<!ELEMENT privateKeyFile (#PCDATA)>
+<!ELEMENT logging (#PCDATA)>
+<!ATTLIST logging
+     logFileName CDATA #REQUIRED
+     logName CDATA #IMPLIED
+     logSize CDATA #IMPLIED
+     logFileCount CDATA #IMPLIED
+     debug CDATA #IMPLIED>
+<!ELEMENT assetStore (#PCDATA)>
+<!ELEMENT memoryStore (assetStore)*>
+<!ELEMENT fileStore (assetStore)*>
+<!ATTLIST fileStore
+     dataPath CDATA #IMPLIED
+     indexPath CDATA #IMPLIED
+     path CDATA #IMPLIED>
+<!ELEMENT mysql (assetStore)*>
+<!ATTLIST mysql
+     password CDATA #REQUIRED
+     port CDATA #IMPLIED
+     host CDATA #IMPLIED
+     username CDATA #REQUIRED
+     schema CDATA #IMPLIED
+     database CDATA #IMPLIED
+     tablename CDATA #IMPLIED
+     tablePrefix CDATA #IMPLIED
+     driver CDATA #IMPLIED>
+<!ELEMENT postgresql (assetStore)*>
+<!ATTLIST postgresql
+     password CDATA #REQUIRED
+     username CDATA #REQUIRED
+     port CDATA #IMPLIED
+     schema CDATA #IMPLIED
+     database CDATA #IMPLIED
+     tablename CDATA #IMPLIED
+     tablePrefix CDATA #IMPLIED
+     driver CDATA #IMPLIED>
