@@ -67,7 +67,7 @@ public class D1SuccessServlet extends ClientServlet {
             warn("2.a. The token is " + (token==null?"null":token) + " and the verifier is " + (verifier==null?"null":verifier));
             GeneralException ge = new GeneralException("Error: This servlet requires parameters for the token and verifier. It cannot be called directly.");
             request.setAttribute("exception", ge);
-            JSPUtil.fwd(request, response, "/pages/client-error.jsp");
+            JSPUtil.fwd(request, response, "/client-error.jsp");
             return;
         }
         info("2.a Token and verifier found.");
@@ -83,7 +83,7 @@ public class D1SuccessServlet extends ClientServlet {
             warn("2.a. Exception from the server: " + t.getCause().getMessage());
             error("Exception while trying to get cert. message:" + t.getMessage());
             request.setAttribute("exception", t);
-            JSPUtil.fwd(request, response, "/pages/client-error.jsp");
+            JSPUtil.fwd(request, response, "/client-error.jsp");
             return;
         }
         
