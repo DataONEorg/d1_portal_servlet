@@ -2,12 +2,12 @@
 <config>
 	<client>
 		<callbackUri>https://cn.dataone.org/portal/ready</callbackUri>
-		<privateKeyFile>/etc/dataone/client/private/oauth-privkey.pk8</privateKeyFile>
-		<publicKeyFile>/etc/dataone/client/certs/oauth-pubkey.pem</publicKeyFile>
-		<serviceUri>https://test.cilogon.org/oauth</serviceUri>
+		<privateKeyFile>PRIVATE_KEY_PATH</privateKeyFile>
+		<publicKeyFile>PUBLIC_CERT_PATH</publicKeyFile>
+		<serviceUri>https://cilogon.org/oauth</serviceUri>
 		<skin>DataONE</skin>
 		<lifetime>864000</lifetime>
-		<id>myproxy:delegation,2011:/client/YOUR_ID_HERE</id>
+		<id>MYPROXY_ID</id>
 
 		<postgresql 
 			username="oa4mp" 
