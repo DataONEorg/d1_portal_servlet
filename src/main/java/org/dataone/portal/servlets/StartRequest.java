@@ -71,14 +71,14 @@ public class StartRequest extends ClientServlet {
                         contextPath = contextPath + "/";
                     }
                     request.setAttribute("action", contextPath);
-                    JSPUtil.handleException(sse.getCause(), request, response, "/pages/client-error.jsp");
+                    JSPUtil.handleException(sse.getCause(), request, response, "/client-error.jsp");
                     if (sse.getRedirect() != null) {
                         response.sendRedirect(sse.getRedirect().toString());
                     }
                     return;
                 }
 
-                JSPUtil.handleException(t, request, response, "/pages/client-error.jsp");
+                JSPUtil.handleException(t, request, response, "/client-error.jsp");
                 return;
             }
             throw t;
