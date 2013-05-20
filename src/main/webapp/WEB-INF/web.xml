@@ -157,9 +157,4 @@
 	    <listener-class>com.hazelcast.web.SessionListener</listener-class>
 	</listener>
 	
-	<!-- use this override for SSL JDBC -->
-	<listener>
-		<listener-class>org.cilogon.portal.servlets.PortalBootstrapper</listener-class>
-	</listener>
-	
 </web-app>
