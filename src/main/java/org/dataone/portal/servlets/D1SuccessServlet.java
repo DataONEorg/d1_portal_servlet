@@ -24,6 +24,7 @@ package org.dataone.portal.servlets;
 
 import org.dataone.portal.PortalCertificateManager;
 
+import edu.uiuc.ncsa.myproxy.oa4mp.client.Asset;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.AssetResponse;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
@@ -77,8 +78,12 @@ public class D1SuccessServlet extends ClientServlet {
         try {
             info("2.a. Getting the cert(s) from the service");
             assetResponse = getOA4MPService().getCert(token, verifier);
-            cert = assetResponse.getX509Certificates()[0];
-            // The work in this call
+            X509Certificate[] certificates = assetResponse.getX509Certificates();
+            // update the asset to include the returned certificate
+            Asset asset = getOA4MPService().getEnvironment().getAssetStore().get(identifier);
+            asset.setCertificates(certificates);
+            getOA4MPService().getEnvironment().getAssetStore().update(asset);
+            cert = certificates[0];
         } catch (Throwable t) {
             warn("2.a. Exception from the server: " + t.getCause().getMessage());
             error("Exception while trying to get cert. message:" + t.getMessage());
