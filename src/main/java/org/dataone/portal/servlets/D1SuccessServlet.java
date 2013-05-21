@@ -70,6 +70,7 @@ public class D1SuccessServlet extends ClientServlet {
             request.setAttribute("exception", ge);
             JSPUtil.handleException(ge, request, response, "/pages/client-error.jsp");
             return;
+            //throw ge;
         }
         info("2.a Token and verifier found.");
         X509Certificate cert = null;
@@ -88,9 +89,9 @@ public class D1SuccessServlet extends ClientServlet {
             warn("2.a. Exception from the server: " + t.getCause().getMessage());
             error("Exception while trying to get cert. message:" + t.getMessage());
             request.setAttribute("exception", t);
-            //JSPUtil.handleException(t, request, response, "/pages/client-error.jsp");
-            //return;
-            throw t;
+            JSPUtil.handleException(t, request, response, "/pages/client-error.jsp");
+            return;
+            //throw t;
         }
         
         // put the cookie for D1
