@@ -2,9 +2,10 @@
 <config>
 	<client>
 		<callbackUri>https://cn.dataone.org/portal/ready</callbackUri>
+		<serviceUri>https://cilogon.org/oauth</serviceUri>
+		<authorizeUri>https://cilogon.org/delegate</authorizeUri>
 		<privateKeyFile>PRIVATE_KEY_PATH</privateKeyFile>
 		<publicKeyFile>PUBLIC_KEY_PATH</publicKeyFile>
-		<serviceUri>https://cilogon.org/oauth</serviceUri>
 		<skin>DataONE</skin>
 		<lifetime>864000</lifetime>
 		<!--<id>MYPROXY_ID</id>-->
