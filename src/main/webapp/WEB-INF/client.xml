@@ -20,6 +20,7 @@
 			database="oauth" 
 			tablename="assets" 
 			prefix="oauth">
+			<assetStore/>
 			<transactions/>
 			<clients/>
 			<clientApprovals/>

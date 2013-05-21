@@ -41,13 +41,16 @@
 	<p>
 		<b>Uh, oh...</b>
 		<br/>
-		There was a problem getting the cert. Check the server logs...
+		There was a problem getting the certificate. Check the server logs...
 		<br/>
-		The message received was: 
+		The stacktrace received was: 
 		<br/>
 		<pre>${stackTrace}</pre>
 		<br/>
-		<br/>Message:${cause}
+		<br/>Cause: ${cause}
+		<br/>
+		<br/>Message: ${cause}
+		
 	</p>
 </body>
 </html>
