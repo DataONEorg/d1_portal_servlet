@@ -64,6 +64,8 @@
         <listener-class>edu.uiuc.ncsa.myproxy.oa4mp.client.loader.ClientBootstrapper</listener-class>
     </listener>
 
+	<!-- disabling this so that index.jsp shows by default -->
+	<!-- 
     <filter>
         <filter-name>filter</filter-name>
         <filter-class>edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.MyTomcatFilter</filter-class>
@@ -72,7 +74,8 @@
         <filter-name>filter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-
+    -->
+    
     <!--
        Specify the XML-based configuration file for oa4mp
     -->
