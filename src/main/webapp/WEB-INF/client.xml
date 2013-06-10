@@ -20,7 +20,8 @@
 			schema="oauth" 
 			database="oauth" 
 			tablename="assets" 
-			prefix="oauth">
+			prefix="oauth" 
+			useSSL="true">
 			<assetStore/>
 			<transactions/>
 			<clients/>
