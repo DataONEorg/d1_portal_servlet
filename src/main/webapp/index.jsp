@@ -75,5 +75,8 @@ your username and passwords are only exchanged with the chosen identity provider
 
 </div>
 
+<!-- footer -->
+<%@ include file="footer.jsp"%>
+
 </body>
 </html>

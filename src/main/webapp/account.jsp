@@ -507,5 +507,8 @@ function init() {
 <!-- end tabs -->
 </div>
 
+<!-- footer -->
+<%@ include file="footer.jsp"%>
+
 </body>
 </html>
