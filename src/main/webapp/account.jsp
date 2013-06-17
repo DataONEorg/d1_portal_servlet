@@ -74,7 +74,7 @@ function removeGroupMembers() {
 function createGroup() {
 	// construct the full DN here. yikes!
 	var groupName = $('#createGroupForm [name="groupName"]').val();
-	$('#createGroupForm [name="groupName"]').val('CN=' + groupName + ',DC=cilogon,DC=org');
+	$('#createGroupForm [name="groupName"]').val('CN=' + groupName + ',DC=dataone,DC=org');
 	makeAjaxCall(
 			'<%=request.getContextPath()%>/identity', 
 			'createGroupForm', 
