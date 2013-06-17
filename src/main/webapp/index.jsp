@@ -1,4 +1,5 @@
 <%@page language="java"%>
+<%@page contentType="text/html; charset=UTF-8" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
@@ -73,6 +74,9 @@ your username and passwords are only exchanged with the chosen identity provider
 </div>
 
 </div>
+
+<!-- footer -->
+<%@ include file="footer.jsp"%>
 
 </body>
 </html>

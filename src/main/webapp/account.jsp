@@ -1,4 +1,5 @@
 <%@page language="java"%>
+<%@page contentType="text/html; charset=UTF-8" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <%@page import="org.dataone.client.D1Client"%>
 <%@page import="org.dataone.service.types.v1.SubjectList"%>
@@ -15,20 +16,24 @@
 <script type="text/javascript">
 
 function makeAjaxCall(url, formId, divId, callback) {
-	$('#' + divId).load(
-		url, //url
-		$("#" + formId).serialize(), //data
-		function(response, status, xhr) {
-			if (status == "error") {
-				var msg = "Sorry but there was an error: ";
-				$("#error").html(msg + xhr.status + " " + xhr.statusText);
+	
+	$.post(
+			url, //url
+			$("#" + formId).serialize(), //data
+			function(response, status, xhr) {
+				if (status == "error") {
+					var msg = "Sorry but there was an error: ";
+					$("#error").html(msg + xhr.status + " " + xhr.statusText);
+				}
+				// set the content for the result
+				$('#' + divId).html(response);
+				// call the callback
+				if (callback) {
+					setTimeout(callback, 0);
+				}
 			}
-			// call the callback
-			if (callback) {
-				setTimeout(callback, 0);
-			}
-		}
-	);
+		);
+	
 }
 function listPeople() {
 	makeAjaxCall("listPeople.jsp", "equivalentIdentitiesForm", "subject");
@@ -69,7 +74,7 @@ function removeGroupMembers() {
 function createGroup() {
 	// construct the full DN here. yikes!
 	var groupName = $('#createGroupForm [name="groupName"]').val();
-	$('#createGroupForm [name="groupName"]').val('CN=' + groupName + ',DC=cilogon,DC=org');
+	$('#createGroupForm [name="groupName"]').val('CN=' + groupName + ',DC=dataone,DC=org');
 	makeAjaxCall(
 			'<%=request.getContextPath()%>/identity', 
 			'createGroupForm', 
@@ -501,6 +506,9 @@ function init() {
 
 <!-- end tabs -->
 </div>
+
+<!-- footer -->
+<%@ include file="footer.jsp"%>
 
 </body>
 </html>
