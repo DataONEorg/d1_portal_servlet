@@ -263,7 +263,7 @@ function init() {
 				</td>
 			</tr>
 			<tr>
-				<td class="label">Given Name</td>
+				<td class="label">Given Name*</td>
 				<td><input type="text" size="60" name="givenName" value="<%=person != null ? person.getGivenName(0) : "" %>"></td>
 				<td></td>
 			</tr>
