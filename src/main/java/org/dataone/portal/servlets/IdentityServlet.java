@@ -69,6 +69,11 @@ public class IdentityServlet extends HttpServlet {
 			System.setProperty("hazelcast.config", hzConfig);
 			//Settings.getConfiguration().setProperty("hazelcast.config", hzConfig);
 		}
+		// point to the correct client config file
+		String configFile = config.getServletContext().getInitParameter("oa4mp:client.config.file");
+		if (configFile != null) {
+			PortalCertificateManager.getInstance().setConfigFile(configFile);
+		}
 	}
 	
 	
