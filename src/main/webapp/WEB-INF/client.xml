@@ -32,7 +32,7 @@
 		<maxAssetLifetime>865000</maxAssetLifetime>
 		
 		<logging
-			logFileName="/var/log/tomcat6/portal.log"
+			logFileName="/var/log/tomcat7/portal.log"
 			logName="oa4mp"
 			logSize="1000000"
 			logFileCount="2"
