@@ -8,7 +8,7 @@
 		<publicKeyFile>PUBLIC_KEY_PATH</publicKeyFile>
 		<skin>DataONE</skin>
 		<lifetime>864000</lifetime>
-		<id>MYPROXY_ID</id>-->
+		<id>MYPROXY_ID</id>
 		<!-- <id>myproxy:oa4mp,2012:/client/24a10c2cd8bda4e6b5cf244ab7532b2</id>-->		
 
 		<postgresql 
