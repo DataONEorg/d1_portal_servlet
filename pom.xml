@@ -11,7 +11,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hazelcast.version>2.6.9</hazelcast.version>
-        <d1_portal_version>1.2.1</d1_portal_version>
+        <d1_portal_version>1.2.2</d1_portal_version>
     </properties>
     <build>
         <plugins>
