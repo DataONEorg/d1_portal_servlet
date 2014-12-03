@@ -97,6 +97,11 @@
 		<param-name>D1Client.CN_URL</param-name>
 		<param-value>https://cn.dataone.org/cn</param-value>
 	</context-param>
+	<!-- properties file to augment additional properties -->
+	<context-param>
+        <param-name>portal.properties.file</param-name>
+        <param-value>/var/lib/tomcat7/webapps/portal/WEB-INF/portal.properties</param-value>
+    </context-param>
 	
 	<context-param>
 		<param-name>org.dataone.assetStore.maxAttempts</param-name>
