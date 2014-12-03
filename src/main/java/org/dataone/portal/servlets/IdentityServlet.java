@@ -294,9 +294,15 @@ public class IdentityServlet extends HttpServlet {
 					log.warn(e.getMessage(), e);
 				}
 				
-				String token = null;
-				token = TokenGenerator.getJWT(userId, fullName);
-				msg = token;
+				String token = TokenGenerator.getJWT(userId, fullName);
+				
+				// write the response immediately
+		        response.setContentType("text/plain; charset=UTF-8");
+		        PrintWriter pw = response.getWriter();
+		        // just print the plain text for AJAX
+		        pw.print(token);
+		        pw.flush();
+		        return;
 	    	}
 	    	
 	    	if (action.equalsIgnoreCase("getSubject")) {
