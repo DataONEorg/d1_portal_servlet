@@ -1,6 +1,6 @@
 <%@page language="java"%>
 <%@page contentType="text/html; charset=UTF-8" %>
-<%@page import="org.dataone.client.D1Client"%>
+<%@page import="org.dataone.client.v1.itk.D1Client"%>
 <%@page import="org.dataone.service.types.v1.NodeList"%>
 <%@page import="java.util.List"%>
 <%@page import="org.dataone.service.types.v1.Node"%>

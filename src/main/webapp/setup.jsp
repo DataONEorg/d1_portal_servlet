@@ -2,7 +2,7 @@
 <%@page contentType="text/html; charset=UTF-8" %>
 <%@page import="org.dataone.service.types.v1.Person"%>
 <%@page import="org.dataone.service.types.v1.SubjectInfo"%>
-<%@page import="org.dataone.client.D1Client"%><%@page language="java"%>
+<%@page import="org.dataone.client.v1.itk.D1Client"%><%@page language="java"%>
 <%@page import="org.dataone.service.types.v1.Subject"%>
 <%@page import="org.dataone.service.types.v1.Session"%>
 <%@page import="org.dataone.client.auth.CertificateManager"%>

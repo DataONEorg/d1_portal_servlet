@@ -1,7 +1,7 @@
 <%@page language="java"%>
 <%@page contentType="text/html; charset=UTF-8" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<%@page import="org.dataone.client.D1Client"%>
+<%@page import="org.dataone.client.v1.itk.D1Client"%>
 <%@page import="org.dataone.service.types.v1.SubjectList"%>
 <%@page import="org.dataone.service.types.v1.Person"%>
 <%@ include file="setup.jsp"%>
