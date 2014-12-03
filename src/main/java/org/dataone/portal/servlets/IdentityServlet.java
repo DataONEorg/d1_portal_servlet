@@ -40,6 +40,7 @@ import org.dataone.client.v2.itk.D1Client;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.configuration.Settings;
 import org.dataone.portal.PortalCertificateManager;
+import org.dataone.portal.TokenGenerator;
 import org.dataone.service.types.v1.Group;
 import org.dataone.service.types.v1.Person;
 import org.dataone.service.types.v1.Session;
@@ -258,12 +259,28 @@ public class IdentityServlet extends HttpServlet {
 				msg = "Members removed from group: " + groupName.getValue();
 	    	}
 	    	
-	    	if (action.equalsIgnoreCase("getToken")) {
-	    		// we need to return the token so other apps can use it to validate authentication
+	    	if (action.equalsIgnoreCase("getCookie")) {
+	    		// we need to return the cookie value so other apps can use it to validate authentication
 	    		Cookie cookie = PortalCertificateManager.getInstance().getCookie(request);
 	    		if (cookie != null) {
 	    			msg = cookie.getValue();
 	    		}
+	    	}
+	    	
+	    	if (action.equalsIgnoreCase("getToken")) {
+	    		// we need to return the token so other apps can use it to validate authentication
+	    		String userId = session.getSubject().getValue();
+				String fullName = null;
+				try {
+					Person person = session.getSubjectInfo().getPerson(0);
+					fullName = person.getGivenName(0) + " " + person.getFamilyName();
+				} catch (Exception e) {
+					log.warn(e.getMessage(), e);
+				}
+				
+				String token = null;
+				token = TokenGenerator.getJWT(userId, fullName);
+				msg = token;
 	    	}
 	    	
 	    	if (action.equalsIgnoreCase("getSubject")) {
