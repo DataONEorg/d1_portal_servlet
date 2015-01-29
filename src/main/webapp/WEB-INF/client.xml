@@ -36,7 +36,8 @@
 			logName="oa4mp"
 			logSize="1000000"
 			logFileCount="2"
-			debug="true"/>
+			debug="true"
+			disableLog4j="false"/>
 		
 	</client>
 </config>
