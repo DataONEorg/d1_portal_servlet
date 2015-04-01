@@ -290,6 +290,7 @@ public class IdentityServlet extends HttpServlet {
 				try {
 					Person person = session.getSubjectInfo().getPerson(0);
 					fullName = person.getGivenName(0) + " " + person.getFamilyName();
+					// TODO: include more details from SubjectInfo in the JWT token?
 				} catch (Exception e) {
 					log.warn(e.getMessage(), e);
 				}
