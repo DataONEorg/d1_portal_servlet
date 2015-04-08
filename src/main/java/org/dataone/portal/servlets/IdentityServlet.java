@@ -295,7 +295,7 @@ public class IdentityServlet extends HttpServlet {
 					log.warn(e.getMessage(), e);
 				}
 				
-				String token = TokenGenerator.getJWT(userId, fullName);
+				String token = TokenGenerator.getInstance().getJWT(userId, fullName);
 				
 				// write the response immediately
 		        response.setContentType("text/plain; charset=UTF-8");
