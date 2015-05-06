@@ -94,7 +94,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 				   .setRedirectURI(REDIRECT_URI)
 				   .setResponseType(ResponseType.CODE.toString())
 				   .setScope("/authenticate")
-				   .setParameter("sessionId", session.getId())
+				   .setState(session.getId())
 				   .buildQueryMessage();
 		
 		// direct them to the authorization location
@@ -107,7 +107,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 		// get the auth code from the callback
 		OAuthAuthzResponse oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
 		String code = oar.getCode();
-		String sessionId = oar.getParam("sessionId");
+		String sessionId = oar.getState();
 		
 		// get the access token
 		OAuthClientRequest clientRequest = OAuthClientRequest
