@@ -93,6 +93,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 				   .setClientId(CLIENT_ID)
 				   .setRedirectURI(REDIRECT_URI)
 				   .setResponseType(ResponseType.CODE.toString())
+				   .setScope("/authenticate")
 				   .setParameter("sessionId", session.getId())
 				   .buildQueryMessage();
 		
