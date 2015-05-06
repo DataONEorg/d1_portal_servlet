@@ -42,6 +42,7 @@ import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
+import org.apache.oltu.oauth2.common.message.types.ResponseType;
 
 /**
  * Simple servlet for handling ORCID auth
@@ -91,6 +92,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 				   .authorizationLocation(AUTHORIZATION_LOCATION)
 				   .setClientId(CLIENT_ID)
 				   .setRedirectURI(REDIRECT_URI)
+				   .setResponseType(ResponseType.CODE.toString())
 				   .setParameter("sessionId", session.getId())
 				   .buildQueryMessage();
 		
