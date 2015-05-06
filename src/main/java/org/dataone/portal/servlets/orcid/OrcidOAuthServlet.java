@@ -62,15 +62,19 @@ public class OrcidOAuthServlet extends HttpServlet {
 		
 		// handle the requests
 		try {
-			if (request.getParameter("code") != null) {
-				this.handleCallback(request);
-			}
-			if (request.getParameter("action") != null) {
-				this.handleGetToken(request, response);
+			String action = request.getParameter("action");
+			if (action != null) {
+				if (action.equals("token")) {
+					this.handleGetToken(request, response);
+				}
+				else if (action.equals("start")) {
+					this.handleStart(request, response);
+				}
 			}
 			else {
-				this.handleStart(request, response);
+				this.handleCallback(request);
 			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -90,7 +94,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 				   .setParameter("sessionId", session.getId())
 				   .buildQueryMessage();
 		
-		// direct them to the authorization locatation
+		// direct them to the authorization location
 		response.sendRedirect(oauthRequest.getLocationUri());
 		
 	}
@@ -108,7 +112,7 @@ public class OrcidOAuthServlet extends HttpServlet {
                 .setGrantType(GrantType.AUTHORIZATION_CODE)
                 .setClientId(CLIENT_ID)
                 .setClientSecret(CLIENT_SECRET)
-                .setRedirectURI("http://www.example.com/redirect")
+                .setRedirectURI(REDIRECT_URI + "?action=token")
                 .setCode(code)
                 .buildQueryMessage();
 		
