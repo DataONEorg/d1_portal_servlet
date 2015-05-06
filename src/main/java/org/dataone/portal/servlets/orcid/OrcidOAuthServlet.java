@@ -119,12 +119,15 @@ public class OrcidOAuthServlet extends HttpServlet {
                 .setCode(code)
                 .buildBodyMessage();
 		
+		String body = clientRequest.getBody();
+		System.out.println("body=" + body);
+		
 		//create OAuth client that uses custom http client under the hood
         OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
         
         // retrieve the access token
 		clientRequest.setHeader("Accept", "application/json");
-        OAuthJSONAccessTokenResponse oAuthResponse = oAuthClient.accessToken(clientRequest, OAuthJSONAccessTokenResponse.class);
+        OAuthJSONAccessTokenResponse oAuthResponse = oAuthClient.accessToken(clientRequest, "POST");
 		 
         String accessToken = oAuthResponse.getAccessToken();
         Long expiresIn = oAuthResponse.getExpiresIn();
