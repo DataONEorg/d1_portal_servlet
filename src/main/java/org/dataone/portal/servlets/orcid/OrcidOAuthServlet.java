@@ -117,12 +117,13 @@ public class OrcidOAuthServlet extends HttpServlet {
                 .setClientSecret(CLIENT_SECRET)
                 .setRedirectURI(REDIRECT_URI + "?action=token")
                 .setCode(code)
-                .buildHeaderMessage();
+                .buildBodyMessage();
 		
 		//create OAuth client that uses custom http client under the hood
         OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
         
         // retrieve the access token
+		clientRequest.setHeader("Accept", "application/json");
         OAuthJSONAccessTokenResponse oAuthResponse = oAuthClient.accessToken(clientRequest, OAuthJSONAccessTokenResponse.class);
 		 
         String accessToken = oAuthResponse.getAccessToken();
