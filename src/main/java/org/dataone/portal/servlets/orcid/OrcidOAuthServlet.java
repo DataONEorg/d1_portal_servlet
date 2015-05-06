@@ -52,7 +52,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 	private static Map<String, HttpSession> sessions = new HashMap<String, HttpSession>();
 
 	private static final String AUTHORIZATION_LOCATION = "https://sandbox.orcid.org/oauth/authorize";
-	private static final String TOKEN_LOCATION = "https://sandbox.orcid.org/oauth/token";
+	private static final String TOKEN_LOCATION = "https://api.sandbox.orcid.org/oauth/token";
 	private static final String REDIRECT_URI = "https://cn-sandbox-2.test.dataone.org/portal/oauth";
 	private static final String CLIENT_ID = "APP-YLSPZFL1W1JVKOXX";
 	private static final String CLIENT_SECRET = "6cb791cc-8cfd-413c-8717-2be3bffa75e8";
