@@ -115,7 +115,7 @@ public class OrcidOAuthServlet extends HttpServlet {
                 .setGrantType(GrantType.AUTHORIZATION_CODE)
                 .setClientId(CLIENT_ID)
                 .setClientSecret(CLIENT_SECRET)
-                .setRedirectURI(REDIRECT_URI + "?action=token")
+                //.setRedirectURI(REDIRECT_URI + "?action=token")
                 .setCode(code)
                 .buildBodyMessage();
 		
