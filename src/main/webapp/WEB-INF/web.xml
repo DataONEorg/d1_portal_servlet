@@ -60,6 +60,16 @@
         <url-pattern>/failure</url-pattern>
     </servlet-mapping>
     
+    <!--  ORCID OAuth servlet -->
+	<servlet>
+		<servlet-name>oauthServlet</servlet-name>
+		<servlet-class>org.dataone.portal.servlets.orcid.OrcidOAuthServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>oauthServlet</servlet-name>
+		<url-pattern>/oauth</url-pattern>
+	</servlet-mapping>
+    
     <!--  AnnotatorStore proxy to MN storage -->
 	<servlet>
 		<servlet-name>annotatorStoreRestServlet</servlet-name>
