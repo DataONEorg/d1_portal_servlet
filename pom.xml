@@ -104,6 +104,15 @@
             <artifactId>hazelcast-wm</artifactId>
             <version>${hazelcast.version}</version>
         </dependency>
+        
+        <!-- OAuth 2.0 client -->
+        <dependency>
+			<groupId>org.apache.oltu.oauth2</groupId>
+			<artifactId>org.apache.oltu.oauth2.client</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+        
     </dependencies>
     <scm>
       <url>https://repository.dataone.org/software/cicore</url>
