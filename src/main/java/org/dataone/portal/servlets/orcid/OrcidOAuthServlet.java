@@ -45,8 +45,9 @@ import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.message.types.ResponseType;
 import org.dataone.portal.TokenGenerator;
 
+import com.hazelcast.client.ClientConfig;
+import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.config.FileSystemXmlConfig;
-import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.nimbusds.jose.JOSEException;
@@ -68,10 +69,17 @@ public class OrcidOAuthServlet extends HttpServlet {
 	public void init(ServletConfig config) throws ServletException {
 		
 		try {
-			// initialize HZ for sharing sessions
+			// connect to HZ cluster as client for sharing sessions
 			String configFileName = config.getInitParameter("config-location");
 			FileSystemXmlConfig hzConfig = new FileSystemXmlConfig(configFileName);
-			HazelcastInstance hzInstance = Hazelcast.newHazelcastInstance(hzConfig);
+			String hzGroupName = hzConfig.getGroupConfig().getName();
+	        String hzGroupPassword = hzConfig.getGroupConfig().getPassword();
+	        String hzAddress = hzConfig.getNetworkConfig().getInterfaces().getInterfaces().iterator().next() + ":" + hzConfig.getNetworkConfig().getPort();
+	        ClientConfig cc = new ClientConfig();
+	        cc.getGroupConfig().setName(hzGroupName);
+	        cc.getGroupConfig().setPassword(hzGroupPassword);
+	        cc.addAddress(hzAddress);
+			HazelcastInstance hzInstance = HazelcastClient.newHazelcastClient(cc);
 			String sessionMapName = config.getInitParameter("map-name");
 			sessions = hzInstance.getMap(sessionMapName);
 			
