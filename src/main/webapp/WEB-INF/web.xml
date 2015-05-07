@@ -64,19 +64,20 @@
 	<servlet>
 		<servlet-name>oauthServlet</servlet-name>
 		<servlet-class>org.dataone.portal.servlets.orcid.OrcidOAuthServlet</servlet-class>
-		<!--  share HZ properties -->
-		<init-param>
-		    <param-name>config-location</param-name>
-		    <param-value>/etc/dataone/portal/hazelcast.xml</param-value>
-		</init-param>
-		<init-param>
-		    <param-name>map-name</param-name>
-		    <param-value>d1PortalSessions</param-value>
-		</init-param>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>oauthServlet</servlet-name>
 		<url-pattern>/oauth</url-pattern>
+	</servlet-mapping>
+	
+	<!-- token endpoint -->
+	<servlet>
+		<servlet-name>tokenServlet</servlet-name>
+		<servlet-class>org.dataone.portal.servlets.TokenServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>tokenServlet</servlet-name>
+		<url-pattern>/token</url-pattern>
 	</servlet-mapping>
     
     <!--  AnnotatorStore proxy to MN storage -->
@@ -135,6 +136,16 @@
 	<context-param>
 		<param-name>org.dataone.assetStore.maxAttempts</param-name>
 		<param-value>10</param-value>
+	</context-param>
+	
+	<!--  share HZ properties for Oauth helper -->
+	<context-param>
+	    <param-name>config-location</param-name>
+	    <param-value>/etc/dataone/portal/hazelcast.xml</param-value>
+	</context-param>
+	<context-param>
+	    <param-name>map-name</param-name>
+	    <param-value>d1PortalOAuth</param-value>
 	</context-param>
       
 	<!-- Hazelcast Session replication -->
