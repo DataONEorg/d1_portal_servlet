@@ -201,9 +201,10 @@ public class OrcidOAuthServlet extends HttpServlet {
 		
 		// look up the token
 		HttpSession session = request.getSession();
-		String accessToken = (String) session.getAttribute("accessToken");
-		String orcid = (String) session.getAttribute("orcid");
-		String name = (String) session.getAttribute("name");
+		Map<String, Object> sessionMap = sessions.get(session.getId());
+		String accessToken = (String) sessionMap.get("accessToken");
+		String orcid = (String) sessionMap.get("orcid");
+		String name = (String) sessionMap.get("name");
 		
 		String jwt = "";
 		if (accessToken != null) {
