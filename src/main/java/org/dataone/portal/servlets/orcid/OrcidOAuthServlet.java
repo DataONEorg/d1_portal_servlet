@@ -120,11 +120,15 @@ public class OrcidOAuthServlet extends HttpServlet {
 	
 	private void handleStart(HttpServletRequest request, HttpServletResponse response) throws OAuthSystemException, IOException {
 		
+		
+		
 		// remember for the callback
 		HttpSession session = request.getSession();
+		// where should we end up with afterward?
+		String target = request.getParameter("target");
+		session.setAttribute("target", target);
 		if (!sessions.containsKey(session.getId())) {
-			//don't worry?
-			
+			// save the session info in a shared map
 			Map<String, Object> sessionMap = new HashMap<String, Object>();
 			Enumeration attributeNames = session.getAttributeNames();
 			while (attributeNames.hasMoreElements()) {
@@ -192,10 +196,15 @@ public class OrcidOAuthServlet extends HttpServlet {
 		sessionMap.put("name", name);
 		sessions.put(sessionId, sessionMap);
 		
-		// redirect?
-		response.sendRedirect(REDIRECT_URI + "?action=token");
+		String target = (String) sessionMap.get("target");
+		if (target != null) {
+			// redirect to target
+			response.sendRedirect(target);
+		} else {
+			// redirect to token
+			response.sendRedirect(REDIRECT_URI + "?action=token");
+		}
 
-		
 	}
 	
 	private void handleGetToken(HttpServletRequest request, HttpServletResponse response) throws IOException, JOSEException, ParseException {
