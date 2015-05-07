@@ -73,7 +73,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 				}
 			}
 			else {
-				this.handleCallback(request);
+				this.handleCallback(request, response);
 			}
 			
 		} catch (Exception e) {
@@ -102,7 +102,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 		
 	}
 	
-	private void handleCallback(HttpServletRequest request) throws OAuthProblemException, OAuthSystemException {
+	private void handleCallback(HttpServletRequest request, HttpServletResponse response) throws OAuthProblemException, OAuthSystemException {
 		
 		// get the auth code from the callback
 		OAuthAuthzResponse oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
@@ -141,6 +141,10 @@ public class OrcidOAuthServlet extends HttpServlet {
 		session.setAttribute("accessToken", accessToken);
 		session.setAttribute("orcid", orcid);
 		session.setAttribute("name", name);
+		
+		// redirect?
+		response.sendRedirect(REDIRECT_URI + "?action=token");
+
 		
 	}
 	
