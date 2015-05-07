@@ -104,6 +104,11 @@
             <artifactId>hazelcast-wm</artifactId>
             <version>${hazelcast.version}</version>
         </dependency>
+        <dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast-client</artifactId>
+            <version>${hazelcast.version}</version>
+		</dependency>
         
         <!-- OAuth 2.0 client -->
         <dependency>
