@@ -23,9 +23,9 @@
 package org.dataone.portal.servlets.orcid;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.text.ParseException;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
@@ -43,13 +43,20 @@ import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.message.types.ResponseType;
+import org.dataone.portal.TokenGenerator;
+
+import com.hazelcast.config.FileSystemXmlConfig;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IMap;
+import com.nimbusds.jose.JOSEException;
 
 /**
  * Simple servlet for handling ORCID auth
  */
 public class OrcidOAuthServlet extends HttpServlet {
 	
-	private static Map<String, HttpSession> sessions = new HashMap<String, HttpSession>();
+	private IMap<String, HttpSession> sessions = null;
 
 	private static final String AUTHORIZATION_LOCATION = "https://sandbox.orcid.org/oauth/authorize";
 	private static final String TOKEN_LOCATION = "https://api.sandbox.orcid.org/oauth/token";
@@ -57,6 +64,24 @@ public class OrcidOAuthServlet extends HttpServlet {
 	private static final String CLIENT_ID = "APP-YLSPZFL1W1JVKOXX";
 	private static final String CLIENT_SECRET = "6cb791cc-8cfd-413c-8717-2be3bffa75e8";
 
+	
+	public void init(ServletConfig config) throws ServletException {
+		
+		try {
+			// initialize HZ for sharing sessions
+			String configFileName = config.getInitParameter("config-location");
+			FileSystemXmlConfig hzConfig = new FileSystemXmlConfig(configFileName);
+			HazelcastInstance hzInstance = Hazelcast.newHazelcastInstance(hzConfig);
+			String sessionMapName = config.getInitParameter("map-name");
+			sessions = hzInstance.getMap(sessionMapName);
+			
+		} catch (Exception e) {
+			throw new ServletException(e);
+		}
+		
+	}
+	
+	
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,
 			IOException {
@@ -86,7 +111,9 @@ public class OrcidOAuthServlet extends HttpServlet {
 		
 		// remember for the callback
 		HttpSession session = request.getSession();
-		sessions.put(session.getId(), session);
+		if (!sessions.containsKey(session.getId())) {
+			sessions.put(session.getId(), session);
+		}
 		
 		OAuthClientRequest oauthRequest = OAuthClientRequest
 				   .authorizationLocation(AUTHORIZATION_LOCATION)
@@ -139,6 +166,8 @@ public class OrcidOAuthServlet extends HttpServlet {
 		
 		HttpSession session = sessions.get(sessionId);
 		session.setAttribute("accessToken", accessToken);
+		session.setAttribute("expiresIn", expiresIn);
+		session.setAttribute("scope", scope);
 		session.setAttribute("orcid", orcid);
 		session.setAttribute("name", name);
 		
@@ -148,16 +177,22 @@ public class OrcidOAuthServlet extends HttpServlet {
 		
 	}
 	
-	private void handleGetToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	private void handleGetToken(HttpServletRequest request, HttpServletResponse response) throws IOException, JOSEException, ParseException {
 		
 		// look up the token
 		HttpSession session = request.getSession();
 		String accessToken = (String) session.getAttribute("accessToken");
+		String orcid = (String) session.getAttribute("orcid");
+		String name = (String) session.getAttribute("name");
 		
-		// write the token
+		String jwt = "";
+		if (accessToken != null) {
+			jwt = TokenGenerator.getInstance().getJWT(orcid, name);
+		}
+		
+		// write the JWT token
 		ServletOutputStream out = response.getOutputStream();
-		IOUtils.write(accessToken, out);
-		
+		IOUtils.write(jwt, out);
 	
 	}
 
