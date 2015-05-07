@@ -24,6 +24,7 @@ package org.dataone.portal.servlets.orcid;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -57,7 +58,7 @@ import com.nimbusds.jose.JOSEException;
  */
 public class OrcidOAuthServlet extends HttpServlet {
 	
-	private IMap<String, HttpSession> sessions = null;
+	private IMap<String, Map<String, Object>> sessions = null;
 
 	private static final String AUTHORIZATION_LOCATION = "https://sandbox.orcid.org/oauth/authorize";
 	private static final String TOKEN_LOCATION = "https://api.sandbox.orcid.org/oauth/token";
@@ -120,7 +121,8 @@ public class OrcidOAuthServlet extends HttpServlet {
 		// remember for the callback
 		HttpSession session = request.getSession();
 		if (!sessions.containsKey(session.getId())) {
-			sessions.put(session.getId(), session);
+			//don't worry?
+			//sessions.put(session.getId(), session);
 		}
 		
 		OAuthClientRequest oauthRequest = OAuthClientRequest
@@ -172,12 +174,12 @@ public class OrcidOAuthServlet extends HttpServlet {
 		String orcid = oAuthResponse.getParam("orcid");
 		String name = oAuthResponse.getParam("name");
 		
-		HttpSession session = sessions.get(sessionId);
-		session.setAttribute("accessToken", accessToken);
-		session.setAttribute("expiresIn", expiresIn);
-		session.setAttribute("scope", scope);
-		session.setAttribute("orcid", orcid);
-		session.setAttribute("name", name);
+		Map<String, Object> sessionMap = sessions.get(sessionId);
+		sessionMap.put("accessToken", accessToken);
+		sessionMap.put("expiresIn", expiresIn);
+		sessionMap.put("scope", scope);
+		sessionMap.put("orcid", orcid);
+		sessionMap.put("name", name);
 		
 		// redirect?
 		response.sendRedirect(REDIRECT_URI + "?action=token");
