@@ -64,6 +64,15 @@
 	<servlet>
 		<servlet-name>oauthServlet</servlet-name>
 		<servlet-class>org.dataone.portal.servlets.orcid.OrcidOAuthServlet</servlet-class>
+		<!--  share HZ properties -->
+		<init-param>
+		    <param-name>config-location</param-name>
+		    <param-value>/etc/dataone/portal/hazelcast.xml</param-value>
+		</init-param>
+		<init-param>
+		    <param-name>map-name</param-name>
+		    <param-value>d1PortalSessions</param-value>
+		</init-param>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>oauthServlet</servlet-name>
