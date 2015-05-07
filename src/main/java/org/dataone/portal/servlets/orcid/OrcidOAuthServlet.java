@@ -102,7 +102,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 		
 	}
 	
-	private void handleCallback(HttpServletRequest request, HttpServletResponse response) throws OAuthProblemException, OAuthSystemException {
+	private void handleCallback(HttpServletRequest request, HttpServletResponse response) throws OAuthProblemException, OAuthSystemException, IOException {
 		
 		// get the auth code from the callback
 		OAuthAuthzResponse oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
