@@ -79,6 +79,16 @@
 		<servlet-name>tokenServlet</servlet-name>
 		<url-pattern>/token</url-pattern>
 	</servlet-mapping>
+	
+	<!-- logout endpoint -->
+	<servlet>
+		<servlet-name>logoutServlet</servlet-name>
+		<servlet-class>org.dataone.portal.servlets.LogoutServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>logoutServlet</servlet-name>
+		<url-pattern>/logout</url-pattern>
+	</servlet-mapping>
     
     <!--  AnnotatorStore proxy to MN storage -->
 	<servlet>
