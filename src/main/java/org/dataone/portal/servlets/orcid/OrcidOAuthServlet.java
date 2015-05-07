@@ -24,6 +24,8 @@ package org.dataone.portal.servlets.orcid;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletConfig;
@@ -122,7 +124,15 @@ public class OrcidOAuthServlet extends HttpServlet {
 		HttpSession session = request.getSession();
 		if (!sessions.containsKey(session.getId())) {
 			//don't worry?
-			//sessions.put(session.getId(), session);
+			
+			Map<String, Object> sessionMap = new HashMap<String, Object>();
+			Enumeration attributeNames = session.getAttributeNames();
+			while (attributeNames.hasMoreElements()) {
+				String name = (String) attributeNames.nextElement();
+				Object value = session.getAttribute(name);
+				sessionMap.put(name, value);
+			}
+			sessions.put(session.getId(), sessionMap );
 		}
 		
 		OAuthClientRequest oauthRequest = OAuthClientRequest
