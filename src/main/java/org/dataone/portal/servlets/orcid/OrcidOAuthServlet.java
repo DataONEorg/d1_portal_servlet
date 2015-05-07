@@ -190,6 +190,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 		sessionMap.put("scope", scope);
 		sessionMap.put("orcid", orcid);
 		sessionMap.put("name", name);
+		sessions.put(sessionId, sessionMap);
 		
 		// redirect?
 		response.sendRedirect(REDIRECT_URI + "?action=token");
