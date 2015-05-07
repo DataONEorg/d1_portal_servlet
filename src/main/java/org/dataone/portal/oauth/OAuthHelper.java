@@ -64,6 +64,10 @@ public class OAuthHelper {
 		
 	}
 	
+	public Map<String, Object> removeSession(String sessionId) {
+		return this.sessions.remove(sessionId);
+	}
+	
 	public void saveSession(HttpSession session) {
 		// save the session info in the shared map
 		Map<String, Object> sessionMap = new HashMap<String, Object>();
