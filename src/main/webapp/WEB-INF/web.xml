@@ -9,7 +9,7 @@
 
 	<servlet>
         <servlet-name>startRequest</servlet-name>
-        <servlet-class>org.dataone.portal.servlets.StartRequest</servlet-class>
+        <servlet-class>org.dataone.portal.servlets.myproxy.StartRequest</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
@@ -19,7 +19,7 @@
 
     <servlet>
         <servlet-name>ready</servlet-name>
-        <servlet-class>org.dataone.portal.servlets.D1SuccessServlet</servlet-class>
+        <servlet-class>org.dataone.portal.servlets.myproxy.D1SuccessServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
@@ -30,14 +30,46 @@
     <servlet>
         <description>Servlet to display test page</description>
         <servlet-name>test</servlet-name>
-        <servlet-class>org.dataone.portal.servlets.D1TestServlet</servlet-class>
+        <servlet-class>org.dataone.portal.servlets.myproxy.D1TestServlet</servlet-class>
         <load-on-startup>0</load-on-startup>
     </servlet>
     <servlet-mapping>
         <servlet-name>test</servlet-name>
         <url-pattern>/test</url-pattern>
     </servlet-mapping>
-
+    
+    <servlet>
+        <description>failure page</description>
+        <servlet-name>failureServlet</servlet-name>
+        <servlet-class>org.dataone.portal.servlets.myproxy.FailureServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>failureServlet</servlet-name>
+        <url-pattern>/failure</url-pattern>
+    </servlet-mapping>
+    
+    <!--  ORCID OAuth servlet -->
+	<servlet>
+		<servlet-name>oauthServlet</servlet-name>
+		<servlet-class>org.dataone.portal.servlets.oauth.OrcidOAuthServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>oauthServlet</servlet-name>
+		<url-pattern>/oauth</url-pattern>
+	</servlet-mapping>
+	
+	<!--  LDAP Auth servlet -->
+	<servlet>
+		<servlet-name>ldapServlet</servlet-name>
+		<servlet-class>org.dataone.portal.servlets.ldap.LdapServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ldapServlet</servlet-name>
+		<url-pattern>/ldap</url-pattern>
+	</servlet-mapping>
+	
+	<!-- identity servlet (old portal) -->
 	<servlet>
         <description>Servlet to edit account info</description>
         <servlet-name>identity</servlet-name>
@@ -49,27 +81,6 @@
         <url-pattern>/identity</url-pattern>
     </servlet-mapping>
     
-    <servlet>
-        <description>failure page</description>
-        <servlet-name>failureServlet</servlet-name>
-        <servlet-class>org.cilogon.portal.servlets.FailureServlet</servlet-class>
-        <load-on-startup>0</load-on-startup>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>failureServlet</servlet-name>
-        <url-pattern>/failure</url-pattern>
-    </servlet-mapping>
-    
-    <!--  ORCID OAuth servlet -->
-	<servlet>
-		<servlet-name>oauthServlet</servlet-name>
-		<servlet-class>org.dataone.portal.servlets.orcid.OrcidOAuthServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>oauthServlet</servlet-name>
-		<url-pattern>/oauth</url-pattern>
-	</servlet-mapping>
-	
 	<!-- token endpoint -->
 	<servlet>
 		<servlet-name>tokenServlet</servlet-name>

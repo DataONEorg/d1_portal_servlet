@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.dataone.portal.PortalCertificateManager;
-import org.dataone.portal.oauth.OAuthHelper;
+import org.dataone.portal.session.SessionHelper;
 
 /**
  * Simple servlet for handling ORCID auth
@@ -41,8 +41,8 @@ public class LogoutServlet extends HttpServlet {
 	
 	public void init(ServletConfig config) throws ServletException {
 		
-		// initialize the oauth helper
-		OAuthHelper.getInstance().init(config);
+		// initialize the session helper
+		SessionHelper.getInstance().init(config);
 		
 	}
 	
@@ -54,8 +54,8 @@ public class LogoutServlet extends HttpServlet {
 		HttpSession session = request.getSession();
 		String target = request.getParameter("target");
 		
-		// get rid of oauth
-		OAuthHelper.getInstance().removeSession(session.getId());
+		// get rid of session
+		SessionHelper.getInstance().removeSession(session.getId());
 		
 		// get rid of portal session
 		PortalCertificateManager.getInstance().removeCookie(response);

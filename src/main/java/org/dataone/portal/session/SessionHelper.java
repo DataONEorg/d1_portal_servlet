@@ -1,4 +1,4 @@
-package org.dataone.portal.oauth;
+package org.dataone.portal.session;
 
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -14,19 +14,19 @@ import com.hazelcast.config.FileSystemXmlConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
-public class OAuthHelper {
+public class SessionHelper {
 
-	private static OAuthHelper instance = null;
+	private static SessionHelper instance = null;
 	
 	private IMap<String, Map<String, Object>> sessions = null;
 	
-	private OAuthHelper() {
+	private SessionHelper() {
 		
 	}
 	
-	public static OAuthHelper getInstance() {
+	public static SessionHelper getInstance() {
 		if (instance == null) {
-			instance = new OAuthHelper();
+			instance = new SessionHelper();
 		}
 		return instance;
 	}
