@@ -20,7 +20,7 @@
  * $Id$
  */
 
-package org.dataone.portal.servlets.orcid;
+package org.dataone.portal.servlets.oauth;
 
 import java.io.IOException;
 import java.util.Map;
@@ -41,7 +41,7 @@ import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.message.types.ResponseType;
-import org.dataone.portal.oauth.OAuthHelper;
+import org.dataone.portal.session.SessionHelper;
 
 /**
  * Simple servlet for handling ORCID auth
@@ -56,10 +56,10 @@ public class OrcidOAuthServlet extends HttpServlet {
 
 	public void init(ServletConfig config) throws ServletException {
 		
-		OAuthHelper.getInstance().init(config);
+		// for persisting session information across requests, callbacks and multiple servers
+		SessionHelper.getInstance().init(config);
 		
 	}
-	
 	
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,
@@ -90,7 +90,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 		// where should we end up with afterward?
 		String target = request.getParameter("target");
 		session.setAttribute("target", target);
-		OAuthHelper.getInstance().saveSession(session);
+		SessionHelper.getInstance().saveSession(session);
 		
 		OAuthClientRequest oauthRequest = OAuthClientRequest
 				   .authorizationLocation(AUTHORIZATION_LOCATION)
@@ -141,13 +141,15 @@ public class OrcidOAuthServlet extends HttpServlet {
 		String orcid = oAuthResponse.getParam("orcid");
 		String name = oAuthResponse.getParam("name");
 		
-		Map<String, Object> sessionMap = OAuthHelper.getInstance().getMap(sessionId);
+		Map<String, Object> sessionMap = SessionHelper.getInstance().getMap(sessionId);
 		sessionMap.put("accessToken", accessToken);
+		sessionMap.put("userId", orcid);
+		sessionMap.put("name", name);
+		// optional attributes for portal
 		sessionMap.put("expiresIn", expiresIn);
 		sessionMap.put("scope", scope);
 		sessionMap.put("orcid", orcid);
-		sessionMap.put("name", name);
-		OAuthHelper.getInstance().saveMap(sessionId, sessionMap);
+		SessionHelper.getInstance().saveMap(sessionId, sessionMap);
 		
 		String target = (String) sessionMap.get("target");
 		if (target != null) {

@@ -20,7 +20,7 @@
  * $Id$
  */
 
-package org.dataone.portal.servlets;
+package org.dataone.portal.servlets.myproxy;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;

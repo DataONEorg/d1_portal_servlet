@@ -20,7 +20,7 @@
  * $Id$
  */
 
-package org.dataone.portal.servlets;
+package org.dataone.portal.servlets.myproxy;
 
 import static edu.uiuc.ncsa.security.util.pkcs.CertUtil.toPEM;
 

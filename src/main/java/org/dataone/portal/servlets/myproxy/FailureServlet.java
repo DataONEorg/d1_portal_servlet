@@ -20,7 +20,7 @@
  * $Id$
  */
 
-package org.cilogon.portal.servlets;
+package org.dataone.portal.servlets.myproxy;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

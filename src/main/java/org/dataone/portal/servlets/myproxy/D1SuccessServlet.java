@@ -20,7 +20,7 @@
  * $Id$
  */
 
-package org.dataone.portal.servlets;
+package org.dataone.portal.servlets.myproxy;
 
 import org.dataone.portal.PortalCertificateManager;
 

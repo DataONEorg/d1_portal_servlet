@@ -40,7 +40,7 @@ import org.apache.commons.io.IOUtils;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.portal.PortalCertificateManager;
 import org.dataone.portal.TokenGenerator;
-import org.dataone.portal.oauth.OAuthHelper;
+import org.dataone.portal.session.SessionHelper;
 import org.dataone.service.types.v1.SubjectInfo;
 
 import com.nimbusds.jose.JOSEException;
@@ -52,8 +52,8 @@ public class TokenServlet extends HttpServlet {
 	
 	public void init(ServletConfig config) throws ServletException {
 		
-		// initialize the oauth helper
-		OAuthHelper.getInstance().init(config);
+		// initialize the session helper
+		SessionHelper.getInstance().init(config);
 		
 	}
 	
@@ -70,7 +70,7 @@ public class TokenServlet extends HttpServlet {
 		}
 		if (token == null) {
 			try {
-				token = this.getOAuthToken(request, response);	
+				token = this.getSessionToken(request, response);	
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -118,18 +118,18 @@ public class TokenServlet extends HttpServlet {
     
 	}
 	
-	private String getOAuthToken(HttpServletRequest request, HttpServletResponse response) throws IOException, JOSEException, ParseException {
+	private String getSessionToken(HttpServletRequest request, HttpServletResponse response) throws IOException, JOSEException, ParseException {
 		
 		// look up the token
 		HttpSession session = request.getSession();
-		Map<String, Object> sessionMap = OAuthHelper.getInstance().getMap(session.getId());
+		Map<String, Object> sessionMap = SessionHelper.getInstance().getMap(session.getId());
 		String accessToken = (String) sessionMap.get("accessToken");
-		String orcid = (String) sessionMap.get("orcid");
+		String userId = (String) sessionMap.get("userId");
 		String name = (String) sessionMap.get("name");
 		
 		String jwt = null;
 		if (accessToken != null) {
-			jwt = TokenGenerator.getInstance().getJWT(orcid, name);
+			jwt = TokenGenerator.getInstance().getJWT(userId, name);
 		}
 		
 		return jwt;
