@@ -23,6 +23,7 @@
 package org.dataone.portal.servlets.ldap;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -31,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.ConfigurationException;
 import org.dataone.configuration.Settings;
 import org.dataone.portal.session.SessionHelper;
@@ -42,6 +44,8 @@ import org.dataone.service.types.v1.SubjectInfo;
 public class LdapServlet extends HttpServlet {
 	
 	private AuthLdap auth = null;
+	
+	private Base64 b64 = new Base64();
 	
 	public void init(ServletConfig config) throws ServletException {
 		
@@ -65,13 +69,22 @@ public class LdapServlet extends HttpServlet {
 		
 		// initialize the session helper
 		SessionHelper.getInstance().init(config);
-		
-		
-		
+
 	}
 	
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,
+	IOException {
+		handleRequest(request, response);
+	}
+	
+	@Override
+	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
+	IOException {
+		handleRequest(request, response);
+	}
+	
+	private void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException,
 			IOException {
 		
 		// where should we end up with after authentication?
@@ -80,9 +93,29 @@ public class LdapServlet extends HttpServlet {
 		// get session to save information to
 		HttpSession session = request.getSession();
 
-		// authenticate
-		String username = request.getParameter("username");
-		String password = request.getParameter("password");
+		// get credentials from request - either header or parameters
+		String username = null;
+		String password = null;
+		
+		// authenticate from header
+		String authorization = request.getHeader("Authorization");
+		if (authorization != null && authorization.startsWith("Basic")) {
+	        // Authorization: Basic base64credentials
+	        String base64Credentials = authorization.substring("Basic".length()).trim();
+	        String credentials = new String(b64.decode(base64Credentials), Charset.forName("UTF-8"));
+	        // credentials = username:password
+	        String[] values = credentials.split(":", 2);
+	        username = values[0];
+	        password = values[1];
+	        
+		} else {
+			
+			// or check the request parameters
+			username = request.getParameter("username");
+			password = request.getParameter("password");
+		}
+		
+		// test authentication against LDAP
 		boolean authenticated = auth.authenticate(username, password);
 		
 		if (authenticated) {
@@ -91,9 +124,11 @@ public class LdapServlet extends HttpServlet {
 			session.setAttribute("userId", username);
 			session.setAttribute("name", fullName);
 			session.setAttribute("accessToken", "valueNotUsed");
-			// save for later
+			
+			// save session for later (token retrieval)
 			SessionHelper.getInstance().saveSession(session);
-			// send to target
+			
+			// send to target location
 			response.sendRedirect(target);
 			return;
 		}
@@ -101,7 +136,6 @@ public class LdapServlet extends HttpServlet {
 		// otherwise an error
 		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unable to authenticate user: " + username);
 		
-
 	}
 	
 
