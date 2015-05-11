@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.security.cert.X509Certificate;
 
+import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -119,8 +120,8 @@ public class D1SuccessServlet extends ClientServlet {
 			String dn = CertificateManager.getInstance().getSubjectDN(cert);
 			subject.setValue(dn);
 			person.setSubject(subject);
-			Rdn rdn = new Rdn(dn);
-			String cn = rdn.toAttributes().get("cn").get().toString();
+			LdapName ldn = new LdapName(dn);
+			String cn = ldn.getRdn(ldn.size()-1).getValue().toString();
 			String firstName = cn.split(" ")[0];
 			String familyName = cn.split(" ")[1];
 			person.addGivenName(firstName);
