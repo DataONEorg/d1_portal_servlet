@@ -132,8 +132,7 @@ public class D1SuccessServlet extends ClientServlet {
 				D1Client.getCN().registerAccount(null, person);
 			}
 		} catch (Exception e) {
-			// oh well, didn't register it, or something went wrong
-			//log.warn(be.getMessage(), be);
+			e.printStackTrace();
 		}
     	
     	// find where we should end up
