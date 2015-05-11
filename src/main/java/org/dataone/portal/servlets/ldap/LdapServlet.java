@@ -22,6 +22,7 @@
 
 package org.dataone.portal.servlets.ldap;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
@@ -34,8 +35,16 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.dataone.client.auth.CertificateManager;
+import org.dataone.client.v2.itk.D1Client;
 import org.dataone.configuration.Settings;
 import org.dataone.portal.session.SessionHelper;
+import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.types.v1.Person;
+import org.dataone.service.types.v1.Subject;
 import org.dataone.service.types.v1.SubjectInfo;
 
 /**
@@ -43,6 +52,8 @@ import org.dataone.service.types.v1.SubjectInfo;
  */
 public class LdapServlet extends HttpServlet {
 	
+	private static Log log = LogFactory.getLog(LdapServlet.class);
+
 	private AuthLdap auth = null;
 	
 	private Base64 b64 = new Base64();
@@ -69,6 +80,11 @@ public class LdapServlet extends HttpServlet {
 		
 		// initialize the session helper
 		SessionHelper.getInstance().init(config);
+		
+		// set up certificate manager to act as CN
+		String certificateLocation = Settings.getConfiguration().getString("D1Client.certificate.directory") 
+				+ File.separator + Settings.getConfiguration().getString("D1Client.certificate.filename");
+		CertificateManager.getInstance().setCertificateLocation(certificateLocation);
 
 	}
 	
@@ -127,6 +143,19 @@ public class LdapServlet extends HttpServlet {
 			
 			// save session for later (token retrieval)
 			SessionHelper.getInstance().saveSession(session);
+			
+			// register them with the CN?
+			try {
+				try {
+					SubjectInfo registeredInfo = D1Client.getCN().getSubjectInfo(null, info.getPerson(0).getSubject());
+				} catch (NotFound nf) {
+					// so register them
+					D1Client.getCN().registerAccount(null, info.getPerson(0));
+				}
+			} catch (BaseException be) {
+				// oh well, didn't register it, or something went wrong
+				log.warn(be.getMessage(), be);
+			}
 			
 			// send to target location
 			response.sendRedirect(target);
