@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpUtils;
 
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
@@ -41,6 +42,7 @@ import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.message.types.ResponseType;
+import org.dataone.configuration.Settings;
 import org.dataone.portal.session.SessionHelper;
 
 /**
@@ -48,17 +50,22 @@ import org.dataone.portal.session.SessionHelper;
  */
 public class OrcidOAuthServlet extends HttpServlet {
 	
-	private static final String AUTHORIZATION_LOCATION = "https://sandbox.orcid.org/oauth/authorize";
-	private static final String TOKEN_LOCATION = "https://api.sandbox.orcid.org/oauth/token";
-	private static final String REDIRECT_URI = "https://cn-sandbox-2.test.dataone.org/portal/oauth";
-	private static final String CLIENT_ID = "APP-YLSPZFL1W1JVKOXX";
-	private static final String CLIENT_SECRET = "6cb791cc-8cfd-413c-8717-2be3bffa75e8";
+	private static String AUTHORIZATION_LOCATION = null;
+	private static String TOKEN_LOCATION = null;
+	private static String CLIENT_ID = null;
+	private static String CLIENT_SECRET = null;
 
 	public void init(ServletConfig config) throws ServletException {
 		
 		// for persisting session information across requests, callbacks and multiple servers
 		SessionHelper.getInstance().init(config);
 		
+		// init the properties
+		AUTHORIZATION_LOCATION = Settings.getConfiguration().getString("orcid.authorization.location");
+		TOKEN_LOCATION = Settings.getConfiguration().getString("orcid.token.location");
+		CLIENT_ID = Settings.getConfiguration().getString("orcid.client.id");
+		CLIENT_SECRET = Settings.getConfiguration().getString("orcid.client.secret");
+
 	}
 	
 	@Override
@@ -85,6 +92,9 @@ public class OrcidOAuthServlet extends HttpServlet {
 	
 	private void handleStart(HttpServletRequest request, HttpServletResponse response) throws OAuthSystemException, IOException {
 		
+		// we just come back here
+		StringBuffer redirectUrl = HttpUtils.getRequestURL(request);
+		
 		// remember for the callback
 		HttpSession session = request.getSession();
 		// where should we end up with afterward?
@@ -95,7 +105,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 		OAuthClientRequest oauthRequest = OAuthClientRequest
 				   .authorizationLocation(AUTHORIZATION_LOCATION)
 				   .setClientId(CLIENT_ID)
-				   .setRedirectURI(REDIRECT_URI)
+				   .setRedirectURI(redirectUrl.toString())
 				   .setResponseType(ResponseType.CODE.toString())
 				   .setScope("/authenticate")
 				   .setState(session.getId())
@@ -119,7 +129,6 @@ public class OrcidOAuthServlet extends HttpServlet {
                 .setGrantType(GrantType.AUTHORIZATION_CODE)
                 .setClientId(CLIENT_ID)
                 .setClientSecret(CLIENT_SECRET)
-                //.setRedirectURI(REDIRECT_URI + "?action=token")
                 .setCode(code)
                 .buildBodyMessage();
 		
