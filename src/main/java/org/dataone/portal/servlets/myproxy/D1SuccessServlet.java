@@ -22,22 +22,32 @@
 
 package org.dataone.portal.servlets.myproxy;
 
+import static edu.uiuc.ncsa.security.util.pkcs.CertUtil.toPEM;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.security.cert.X509Certificate;
+
+import javax.naming.ldap.Rdn;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.dataone.client.auth.CertificateManager;
+import org.dataone.client.v2.itk.D1Client;
+import org.dataone.configuration.Settings;
 import org.dataone.portal.PortalCertificateManager;
+import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.types.v1.Person;
+import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v1.SubjectInfo;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.client.Asset;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.AssetResponse;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.servlet.JSPUtil;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.PrintWriter;
-import java.security.cert.X509Certificate;
-
-import static edu.uiuc.ncsa.security.util.pkcs.CertUtil.toPEM;
 
 /**
  * <p>Created by Jeff Gaynor<br>
@@ -54,6 +64,11 @@ public class D1SuccessServlet extends ClientServlet {
 		if (maxAttemptsString != null) {
 			maxAttempts = Integer.parseInt(maxAttemptsString);
 		}
+		
+		// set up certificate manager to act as CN
+		String certificateLocation = Settings.getConfiguration().getString("D1Client.certificate.directory") 
+				+ File.separator + Settings.getConfiguration().getString("D1Client.certificate.filename");
+		CertificateManager.getInstance().setCertificateLocation(certificateLocation);
 	}
 	
     protected void doIt(HttpServletRequest request, HttpServletResponse response) throws Throwable {
@@ -96,6 +111,30 @@ public class D1SuccessServlet extends ClientServlet {
         
         // put the cookie for D1
     	PortalCertificateManager.getInstance().setCookie(identifier, response);
+    			
+    	// register them with the CN
+		try {
+			Person person = new Person();
+			Subject subject = new Subject();
+			String dn = CertificateManager.getInstance().getSubjectDN(cert);
+			subject.setValue(dn);
+			person.setSubject(subject);
+			Rdn rdn = new Rdn(dn);
+			String cn = rdn.toAttributes().get("cn").get().toString();
+			String firstName = cn.split(" ")[0];
+			String familyName = cn.split(" ")[1];
+			person.addGivenName(firstName);
+			person.setFamilyName(familyName);
+			try {
+				SubjectInfo registeredInfo = D1Client.getCN().getSubjectInfo(null, person.getSubject());
+			} catch (NotFound nf) {
+				// so register them
+				D1Client.getCN().registerAccount(null, person);
+			}
+		} catch (Exception e) {
+			// oh well, didn't register it, or something went wrong
+			//log.warn(be.getMessage(), be);
+		}
     	
     	// find where we should end up
     	String target = (String) request.getSession().getAttribute("target");
