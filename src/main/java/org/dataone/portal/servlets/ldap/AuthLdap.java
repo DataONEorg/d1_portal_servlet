@@ -282,8 +282,8 @@ public class AuthLdap {
 		// get attributes
 		try {
 			HashMap<String, Vector<String>> attributes = this.getAttributes(username);
-			if (attributes.containsKey("email")) {
-				person.addEmail(attributes.get("email").firstElement());
+			if (attributes.containsKey("mail")) {
+				person.addEmail(attributes.get("mail").firstElement());
 			}
 			if (attributes.containsKey("givenName")) {
 				person.addGivenName(attributes.get("givenName").firstElement());
