@@ -93,6 +93,17 @@ public class IdentityServlet extends HttpServlet {
 		
 	}
 	
+	@Override
+	public void destroy() {
+		super.destroy();
+		// close the log handlers for uiuc
+		try {
+			PortalCertificateManager.getInstance().closeLoggers();
+		} catch (Exception e) {
+			// all we can do is complain
+			log.error("Could not shutdown the UIUC loggers", e);
+		}
+	}
 	
     public void doGet(HttpServletRequest request, HttpServletResponse response)
     	throws ServletException, IOException {
