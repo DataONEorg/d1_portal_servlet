@@ -274,7 +274,7 @@ function init() {
 			</tr>
 			<tr>
 				<td class="label">Email*</td>
-				<td><input type="text" size="60" name="email" value="<%=person != null ? person.getEmail(0) : "" %>"></td>
+				<td><input type="text" size="60" name="email" value="<%=( person != null && person.getEmailList() != null && !person.getEmailList().isEmpty() ) ? person.getEmail(0) : "" %>"></td>
 				<td></td>
 			</tr>
 			<tr>
