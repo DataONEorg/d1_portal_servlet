@@ -102,6 +102,7 @@
 	</servlet-mapping>
     
     <!--  AnnotatorStore proxy to MN storage -->
+    <!-- 
 	<servlet>
 		<servlet-name>annotatorStoreRestServlet</servlet-name>
 		<servlet-class>org.dataone.annotator.store.AnnotatorRestServlet</servlet-class>
@@ -110,6 +111,7 @@
 		<servlet-name>annotatorStoreRestServlet</servlet-name>
 		<url-pattern>/annotator/*</url-pattern>
 	</servlet-mapping>
+	-->
     
     <listener>
         <listener-class>edu.uiuc.ncsa.myproxy.oa4mp.client.loader.ClientBootstrapper</listener-class>
