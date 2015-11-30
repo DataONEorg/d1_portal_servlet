@@ -65,6 +65,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 	private static String TOKEN_LOCATION = null;
 	private static String CLIENT_ID = null;
 	private static String CLIENT_SECRET = null;
+	private static String ORCID_PREFIX = null;
 
 	public void init(ServletConfig config) throws ServletException {
 		
@@ -76,6 +77,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 		TOKEN_LOCATION = Settings.getConfiguration().getString("orcid.token.location");
 		CLIENT_ID = Settings.getConfiguration().getString("orcid.client.id");
 		CLIENT_SECRET = Settings.getConfiguration().getString("orcid.client.secret");
+		ORCID_PREFIX = Settings.getConfiguration().getString("orcid.prefix");
 
 	}
 	
@@ -160,6 +162,9 @@ public class OrcidOAuthServlet extends HttpServlet {
 		// details about this person
 		String orcid = oAuthResponse.getParam("orcid");
 		String name = oAuthResponse.getParam("name");
+		
+		// include prefix
+		orcid = ORCID_PREFIX + orcid;
 		
 		Map<String, Object> sessionMap = SessionHelper.getInstance().getMap(sessionId);
 		sessionMap.put("accessToken", accessToken);
