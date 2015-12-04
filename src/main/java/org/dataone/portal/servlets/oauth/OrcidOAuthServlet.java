@@ -33,6 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUtils;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
@@ -42,18 +44,28 @@ import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.message.types.ResponseType;
+import org.dataone.client.v2.itk.D1Client;
 import org.dataone.configuration.Settings;
 import org.dataone.portal.session.SessionHelper;
+import org.dataone.service.exceptions.BaseException;
+import org.dataone.service.exceptions.NotFound;
+import org.dataone.service.types.v1.Person;
+import org.dataone.service.types.v1.Subject;
+import org.dataone.service.types.v1.SubjectInfo;
 
 /**
  * Simple servlet for handling ORCID auth
  */
 public class OrcidOAuthServlet extends HttpServlet {
 	
+	private static Log log = LogFactory.getLog(OrcidOAuthServlet.class);
+
+	
 	private static String AUTHORIZATION_LOCATION = null;
 	private static String TOKEN_LOCATION = null;
 	private static String CLIENT_ID = null;
 	private static String CLIENT_SECRET = null;
+	private static String ORCID_PREFIX = null;
 
 	public void init(ServletConfig config) throws ServletException {
 		
@@ -65,6 +77,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 		TOKEN_LOCATION = Settings.getConfiguration().getString("orcid.token.location");
 		CLIENT_ID = Settings.getConfiguration().getString("orcid.client.id");
 		CLIENT_SECRET = Settings.getConfiguration().getString("orcid.client.secret");
+		ORCID_PREFIX = Settings.getConfiguration().getString("orcid.prefix");
 
 	}
 	
@@ -150,6 +163,9 @@ public class OrcidOAuthServlet extends HttpServlet {
 		String orcid = oAuthResponse.getParam("orcid");
 		String name = oAuthResponse.getParam("name");
 		
+		// include prefix
+		orcid = ORCID_PREFIX + orcid;
+		
 		Map<String, Object> sessionMap = SessionHelper.getInstance().getMap(sessionId);
 		sessionMap.put("accessToken", accessToken);
 		sessionMap.put("userId", orcid);
@@ -159,6 +175,34 @@ public class OrcidOAuthServlet extends HttpServlet {
 		sessionMap.put("scope", scope);
 		sessionMap.put("orcid", orcid);
 		SessionHelper.getInstance().saveMap(sessionId, sessionMap);
+		
+		// attempt to register them with the CN
+		try {
+			
+			Subject subject = new Subject();
+			subject.setValue(orcid);
+			Person person = new Person();
+			person.setSubject(subject);
+			
+			// rudimentary parsing of name if possible
+			String givenName = null;
+			String familyName = name;
+			if (name != null &&name.contains(" ")) {
+				givenName = name.split(" ", 2)[0];
+				familyName = name.split(" ", 2)[1];
+			}
+			person.addGivenName(givenName);
+			person.setFamilyName(familyName);
+			try {
+				SubjectInfo registeredInfo = D1Client.getCN().getSubjectInfo(null, subject);
+			} catch (NotFound nf) {
+				// so register them
+				D1Client.getCN().registerAccount(null, person);
+			}
+		} catch (BaseException be) {
+			// oh well, didn't register it, or something went wrong
+			log.warn(be.getMessage(), be);
+		}
 		
 		String target = (String) sessionMap.get("target");
 		if (target != null) {
