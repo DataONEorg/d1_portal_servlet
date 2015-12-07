@@ -9,7 +9,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hazelcast.version>2.3.1</hazelcast.version>
-        <d1_portal_version>2.0.0</d1_portal_version>
+        <d1_portal_version>2.0.1</d1_portal_version>
         <!--  <d1_annotator_version>0.1-SNAPSHOT</d1_annotator_version> -->
     </properties>
     <build>
