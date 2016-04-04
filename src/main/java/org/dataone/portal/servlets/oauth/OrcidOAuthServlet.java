@@ -122,6 +122,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 				   .setResponseType(ResponseType.CODE.toString())
 				   .setScope("/authenticate")
 				   .setState(session.getId())
+				   .setParameter("show_login", "true")
 				   .buildQueryMessage();
 		
 		// direct them to the authorization location
