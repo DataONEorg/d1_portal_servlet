@@ -10,7 +10,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hazelcast.version>2.4.1</hazelcast.version>
         <d1_portal.version>2.2.0-SNAPSHOT</d1_portal.version>
-        <d1_annotator_version>0.1-SNAPSHOT</d1_annotator_version>
+<!--        <d1_annotator_version>0.1-SNAPSHOT</d1_annotator_version> -->
     </properties>
     <build>
         <plugins>
@@ -93,12 +93,12 @@
             <version>${d1_portal.version}</version>
             <type>jar</type>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <artifactId>d1_annotator</artifactId>
             <groupId>org.dataone</groupId>
             <version>${d1_annotator_version}</version>
             <type>jar</type>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-wm</artifactId>
@@ -117,8 +117,17 @@
 			<version>1.0.0</version>
 		</dependency>
 
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
         
     </dependencies>
+
+
     <scm>
       <url>https://repository.dataone.org/software/cicore</url>
       <connection>scm:svn:https://repository.dataone.org/software/cicore</connection>
