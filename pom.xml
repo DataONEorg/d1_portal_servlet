@@ -8,6 +8,7 @@
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <compiler.target.version>1.7</compiler.target.version>
         <hazelcast.version>2.4.1</hazelcast.version>
         <d1_portal.version>2.3.0-SNAPSHOT</d1_portal.version>
 <!--        <d1_annotator_version>0.1-SNAPSHOT</d1_annotator_version> -->
@@ -45,7 +46,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <source>1.7</source>
-                    <target>1.7</target>
+                    <target>${compiler.target.version}</target>
                 </configuration>
             </plugin>
             <plugin>
