@@ -56,6 +56,12 @@ import edu.uiuc.ncsa.security.servlet.JSPUtil;
  */
 public class D1SuccessServlet extends ClientServlet {
 	
+    // these used to be constants in ClientServlet, but were refactored
+    // out between 1.0.7 and 1.1 (no hint of where they might be now, or
+    // if they are still ok to use...)
+    public static final String TOKEN_KEY = "oauth_token";
+    public static final String VERIFIER_KEY = "oauth_verifier";
+    
 	protected int maxAttempts = 10;
 	
 	public void init(ServletConfig config) throws ServletException {
