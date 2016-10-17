@@ -11,14 +11,14 @@
         <compiler.target.version>1.7</compiler.target.version>
         <hazelcast.version>2.4.1</hazelcast.version>
         <d1_portal.version>2.3.0-SNAPSHOT</d1_portal.version>
-<!--        <d1_annotator_version>0.1-SNAPSHOT</d1_annotator_version> -->
+        <d1_annotator_version>0.1-SNAPSHOT</d1_annotator_version>
     </properties>
     <build>
         <plugins>
         	<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.1-alpha-2</version>
+                <version>2.1.1</version>
                 <configuration>
                     <outputDirectory>${project.basedir}/out</outputDirectory>
                     <workDirectory>${project.build.directory}/tmp/war/work</workDirectory>
@@ -88,18 +88,25 @@
         </repository>
     </repositories>
     <dependencies>
+    	<dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <artifactId>d1_portal</artifactId>
             <groupId>org.dataone</groupId>
             <version>${d1_portal.version}</version>
             <type>jar</type>
         </dependency>
-<!--        <dependency>
+       <dependency>
             <artifactId>d1_annotator</artifactId>
             <groupId>org.dataone</groupId>
             <version>${d1_annotator_version}</version>
             <type>jar</type>
-        </dependency> -->
+        </dependency>
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-wm</artifactId>
