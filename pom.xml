@@ -110,7 +110,12 @@
 			<artifactId>hazelcast-client</artifactId>
             <version>${hazelcast.version}</version>
 		</dependency>
-        
+        <dependency>
+      <groupId>edu.uiuc.ncsa.myproxy</groupId>
+      <artifactId>oa4mp-client-api</artifactId>
+      <version>3.3</version>
+    </dependency>
+
         <!-- OAuth 2.0 client -->
         <dependency>
 			<groupId>org.apache.oltu.oauth2</groupId>
