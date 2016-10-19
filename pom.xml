@@ -17,7 +17,7 @@
         	<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.1-alpha-2</version>
+                <version>2.1.1</version>
                 <configuration>
                     <outputDirectory>${project.basedir}/out</outputDirectory>
                     <workDirectory>${project.build.directory}/tmp/war/work</workDirectory>
@@ -87,6 +87,13 @@
         </repository>
     </repositories>
     <dependencies>
+    	<dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <artifactId>d1_portal</artifactId>
             <groupId>org.dataone</groupId>
@@ -109,7 +116,12 @@
 			<artifactId>hazelcast-client</artifactId>
             <version>${hazelcast.version}</version>
 		</dependency>
-        
+        <dependency>
+      <groupId>edu.uiuc.ncsa.myproxy</groupId>
+      <artifactId>oa4mp-client-api</artifactId>
+      <version>3.3</version>
+    </dependency>
+
         <!-- OAuth 2.0 client -->
         <dependency>
 			<groupId>org.apache.oltu.oauth2</groupId>
