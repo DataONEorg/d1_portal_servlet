@@ -10,19 +10,6 @@
 		<lifetime>864000</lifetime>
 		<id>MYPROXY_ID</id>
 		<!-- <id>myproxy:oa4mp,2012:/client/501a796b5dab878f71665731028bd8a9 </id>-->		
-
-    <keystore path="/usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/security/cacerts"
-        type="pkcs12"
-        password="some.password"
-        factory="SunX509"
-        useJavaKeystore="true"/>
-        
-    <truststore path="/usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/security/cacerts"
-        type="pkcs12"
-        password="some.password"
-        factory="SunX509"
-        useJavaKeystore="true"/>
-
 		<postgresql 
 			username="oa4mp" 
 			password="oa4mp" 
