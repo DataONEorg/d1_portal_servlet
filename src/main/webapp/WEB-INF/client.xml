@@ -14,7 +14,7 @@
 			username="oa4mp" 
 			password="oa4mp" 
 			driver="org.postgresql.Driver"
-			host="cn.dataone.org"
+			host="localhost"
 			port="5432" 
 			schema="oauth" 
 			database="oauth" 
