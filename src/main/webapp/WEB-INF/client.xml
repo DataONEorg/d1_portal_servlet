@@ -39,7 +39,7 @@
 			disableLog4j="false"/>
       
 		<keystore useJavaKeystore="true"
-        path="/usr/lib/jvm/java-1.7.0-openjdk-amd64/jre/lib/security/cacerts"
+        path="/usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/security/cacerts"
         password="JAVA_KEYSTORE_PASSWORD"
         type="jks"
         factory="SunX509" />
