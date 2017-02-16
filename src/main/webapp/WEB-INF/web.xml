@@ -183,6 +183,11 @@
 		    <param-name>config-location</param-name>
 		    <param-value>/etc/dataone/portal/hazelcast.xml</param-value>
 		</init-param>
+		
+		<init-param>
+            <param-name>client-config-location</param-name>
+            <param-value>/etc/dataone/portal/hazelcast-client.xml</param-value>
+        </init-param>
 		<!--
 		    Name of the distributed map storing
 		    your web session objects
