@@ -8,6 +8,9 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.hazelcast.client.ClientConfig;
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.config.FileSystemXmlConfig;
@@ -17,6 +20,8 @@ import com.hazelcast.core.IMap;
 public class SessionHelper {
 
 	private static SessionHelper instance = null;
+	
+	private static Log log = LogFactory.getLog(SessionHelper.class);
 	
 	private IMap<String, Map<String, Object>> sessions = null;
 	
@@ -40,11 +45,14 @@ public class SessionHelper {
 		
 		try {
 			// connect to HZ cluster as client for sharing sessions
-			String configFileName = config.getServletContext().getInitParameter("config-location");
+			String configFileName = config.getServletContext().getInitParameter("client-config-location");
+			log.debug("SessionHelper.init ================== the client configuration file path is "+configFileName);
 			FileSystemXmlConfig hzConfig = new FileSystemXmlConfig(configFileName);
 			String hzGroupName = hzConfig.getGroupConfig().getName();
+			log.debug("SessionHelper.init ================== the group name from the client configuration is "+hzGroupName);
 	        String hzGroupPassword = hzConfig.getGroupConfig().getPassword();
 	        String hzAddress = hzConfig.getNetworkConfig().getInterfaces().getInterfaces().iterator().next() + ":" + hzConfig.getNetworkConfig().getPort();
+	        log.debug("SessionHelper.init ================== the hz address from the client configuration is "+hzAddress);
 	        ClientConfig cc = new ClientConfig();
 	        cc.getGroupConfig().setName(hzGroupName);
 	        cc.getGroupConfig().setPassword(hzGroupPassword);
