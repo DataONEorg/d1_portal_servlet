@@ -6,12 +6,12 @@
          version="2.5">
 
     <display-name>MyProxy Portal</display-name>
-
+    
     <!-- ensure session lasts as long as a token -->
     <session-config>
     	<session-timeout>1080</session-timeout>
     </session-config>
-    
+
 	<servlet>
         <servlet-name>startRequest</servlet-name>
         <servlet-class>org.dataone.portal.servlets.myproxy.StartRequest</servlet-class>
@@ -170,6 +170,10 @@
 	    <param-value>/etc/dataone/portal/hazelcast.xml</param-value>
 	</context-param>
 	<context-param>
+        <param-name>client-config-location</param-name>
+        <param-value>/etc/dataone/portal/hazelcast-client.xml</param-value>
+    </context-param>
+	<context-param>
 	    <param-name>map-name</param-name>
 	    <param-value>d1PortalOAuth</param-value>
 	</context-param>
@@ -183,6 +187,11 @@
 		    <param-name>config-location</param-name>
 		    <param-value>/etc/dataone/portal/hazelcast.xml</param-value>
 		</init-param>
+		
+		<init-param>
+            <param-name>client-config-location</param-name>
+            <param-value>/etc/dataone/portal/hazelcast-client.xml</param-value>
+        </init-param>
 		<!--
 		    Name of the distributed map storing
 		    your web session objects
