@@ -27,6 +27,7 @@ import static edu.uiuc.ncsa.security.util.pkcs.CertUtil.toPEM;
 import java.io.File;
 import java.io.PrintWriter;
 import java.security.cert.X509Certificate;
+import java.util.Set;
 
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
@@ -47,6 +48,7 @@ import org.dataone.service.types.v1.SubjectInfo;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.Asset;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.AssetResponse;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
+import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.servlet.JSPUtil;
 
@@ -108,15 +110,36 @@ public class D1SuccessServlet extends ClientServlet {
                 System.out.println("the assetReponse is null========");
             }
             X509Certificate[] certificates = assetResponse.getX509Certificates();
+            
+            if(certificates == null) {
+                System.out.println("the certificate is null========");
+            }
+            
             if(getOA4MPService().getEnvironment() == null) {
                 System.out.println("the environment is null========");
             }
             
             if(getOA4MPService().getEnvironment().getAssetStore() == null) {
                 System.out.println("the asset store is null========");
+            } else {
+                System.out.println("The asset store class name is ====="+getOA4MPService().getEnvironment().getAssetStore().getClass().getCanonicalName());
+                Set<Identifier> ids = getOA4MPService().getEnvironment().getAssetStore().keySet();
+                if(ids != null) {
+                    System.out.println("The assset store does have entries");
+                    for(Identifier id : ids) {
+                        System.out.println("id is "+id.toString());
+                    }
+                } else {
+                    System.out.println("The assset store doesn't have any entry");
+                }
+               
             }
             // update the asset to include the returned certificate
             Asset asset = getOA4MPService().getEnvironment().getAssetStore().get(identifier);
+            if(asset == null) {
+                System.out.println("the asset itself is null======== and identifier is "+identifier);
+                
+            }
             asset.setCertificates(certificates);
             getOA4MPService().getEnvironment().getAssetStore().save(asset);
             cert = certificates[0];
