@@ -49,6 +49,8 @@ public class StartRequest extends ClientServlet {
         // Drumroll please: here is the work for this call.
         try {
             Identifier id = AssetStoreUtil.createID();
+            System.out.println("the id in start request is "+id.getUri().toString());
+            System.out.println("the id in start request is(2) "+id.toString());
             gtwResp = getOA4MPService().requestCert(id);
             // if there is a store, store something in it.
             Cookie cookie = new Cookie(OA4MP_CLIENT_REQUEST_ID, id.getUri().toString());
