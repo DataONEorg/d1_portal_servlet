@@ -101,12 +101,12 @@
             <version>${d1_portal.version}</version>
             <type>jar</type>
         </dependency>
-       <dependency>
+       <!--<dependency>
             <artifactId>d1_annotator</artifactId>
             <groupId>org.dataone</groupId>
             <version>${d1_annotator_version}</version>
             <type>jar</type>
-        </dependency>
+        </dependency>-->
 
         <dependency>
             <groupId>com.hazelcast</groupId>
