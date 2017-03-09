@@ -128,6 +128,7 @@ public class D1SuccessServlet extends ClientServlet {
                     System.out.println("The assset store does have entries");
                     for(Identifier id : ids) {
                         System.out.println("id is "+id.toString());
+                        System.out.println("id is "+id.getUri().toString());
                     }
                 } else {
                     System.out.println("The assset store doesn't have any entry");
