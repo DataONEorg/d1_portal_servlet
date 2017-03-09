@@ -196,11 +196,13 @@ public class D1SuccessServlet extends ClientServlet {
     	String target = (String) request.getSession().getAttribute("target");
     	System.out.println("after find the target ==========");
     	if (target != null) {
-    	    System.out.println("the target is not null ==========");
+    	    System.out.println("the target is not null ========== "+target);
     		// remove from the session once we use it
     		request.getSession().removeAttribute("target");
+    		System.out.println("after rmove attribute target from request ==========");
     		// send the redirect
     		response.sendRedirect(target);
+    		System.out.println("send the redirect to ========== "+target);
     		return;
     	}
     
