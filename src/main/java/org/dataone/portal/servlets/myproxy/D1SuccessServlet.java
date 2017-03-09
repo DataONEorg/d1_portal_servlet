@@ -100,15 +100,30 @@ public class D1SuccessServlet extends ClientServlet {
 
         try {
             info("2.a. Getting the cert(s) from the service");
+            if(getOA4MPService() == null) {
+                System.out.println("the OA4MP service is null========");
+            }
             assetResponse = getOA4MPService().getCert(token, verifier);
+            if(assetResponse == null ) {
+                System.out.println("the assetReponse is null========");
+            }
             X509Certificate[] certificates = assetResponse.getX509Certificates();
+            if(getOA4MPService().getEnvironment() == null) {
+                System.out.println("the environment is null========");
+            }
+            
+            if(getOA4MPService().getEnvironment().getAssetStore() == null) {
+                System.out.println("the asset store is null========");
+            }
             // update the asset to include the returned certificate
             Asset asset = getOA4MPService().getEnvironment().getAssetStore().get(identifier);
             asset.setCertificates(certificates);
             getOA4MPService().getEnvironment().getAssetStore().save(asset);
             cert = certificates[0];
         } catch (Throwable t) {
-            warn("2.a. Exception from the server: " + t.getCause().getMessage());
+            t.printStackTrace();
+            //warn("2.a. Exception from the server: " + t.getCause().getMessage());
+            System.out.println("Exception while trying to get cert. message:" + t.getMessage());
             error("Exception while trying to get cert. message:" + t.getMessage());
             request.setAttribute("exception", t);
             JSPUtil.handleException(t, request, response, "/pages/client-error.jsp");
