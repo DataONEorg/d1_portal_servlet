@@ -85,6 +85,7 @@ public class D1SuccessServlet extends ClientServlet {
         if (identifier == null) {
             throw new ServletException("Error: No identifier for this delegation request was found. ");
         }
+        System.out.println("the identifier from the cookie is "+identifier);
         info("2.a. Getting token and verifier.");
         String token = request.getParameter(TOKEN_KEY);
         String verifier = request.getParameter(VERIFIER_KEY);
@@ -142,8 +143,14 @@ public class D1SuccessServlet extends ClientServlet {
                 
             }
             asset.setCertificates(certificates);
+            System.out.println("after set the certificates to the asset");
             getOA4MPService().getEnvironment().getAssetStore().save(asset);
+            System.out.println("after saving the asset back to the asset store");
             cert = certificates[0];
+            System.out.println("after get the first certificate");
+            if(cert == null) {
+                System.out.println("the first certificate is null");
+            }
         } catch (Throwable t) {
             t.printStackTrace();
             //warn("2.a. Exception from the server: " + t.getCause().getMessage());
@@ -172,10 +179,14 @@ public class D1SuccessServlet extends ClientServlet {
 			person.addGivenName(firstName);
 			person.setFamilyName(familyName);
 			try {
+			    System.out.println("before get the subject inforamtion");
 				SubjectInfo registeredInfo = D1Client.getCN().getSubjectInfo(null, person.getSubject());
+				System.out.println("after get the subject inforamtion");
 			} catch (NotFound nf) {
 				// so register them
+			    System.out.println("we can't get the subject inforamtion, so will register it.");
 				D1Client.getCN().registerAccount(null, person);
+				System.out.println("after register the cn information");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -183,14 +194,17 @@ public class D1SuccessServlet extends ClientServlet {
     	
     	// find where we should end up
     	String target = (String) request.getSession().getAttribute("target");
+    	System.out.println("after find the target ==========");
     	if (target != null) {
+    	    System.out.println("the target is not null ==========");
     		// remove from the session once we use it
     		request.getSession().removeAttribute("target");
     		// send the redirect
     		response.sendRedirect(target);
     		return;
     	}
-    		
+    
+    	System.out.println("the target is null and we will continue ==========");
     	// otherwise show us information
         response.setContentType("text/html");
         PrintWriter pw = response.getWriter();
