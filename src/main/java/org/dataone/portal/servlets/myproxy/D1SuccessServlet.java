@@ -170,7 +170,7 @@ public class D1SuccessServlet extends ClientServlet {
 			Person person = new Person();
 			Subject subject = new Subject();
 			String dn = CertificateManager.getInstance().getSubjectDN(cert);
-			System.out.println("The subject is ==== "+subject);
+			System.out.println("The subject is ==== "+dn);
 			subject.setValue(dn);
 			person.setSubject(subject);
 			LdapName ldn = new LdapName(dn);
