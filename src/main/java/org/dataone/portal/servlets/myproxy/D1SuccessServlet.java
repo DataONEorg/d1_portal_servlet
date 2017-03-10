@@ -170,18 +170,21 @@ public class D1SuccessServlet extends ClientServlet {
 			Person person = new Person();
 			Subject subject = new Subject();
 			String dn = CertificateManager.getInstance().getSubjectDN(cert);
+			System.out.println("The subject is ==== "+subject);
 			subject.setValue(dn);
 			person.setSubject(subject);
 			LdapName ldn = new LdapName(dn);
 			String cn = ldn.getRdn(ldn.size()-1).getValue().toString();
 			String firstName = cn.split(" ")[0];
+			System.out.println("The first name is ==== "+firstName);
 			String familyName = cn.split(" ")[1];
+			System.out.println("The family name is ==== "+familyName);
 			person.addGivenName(firstName);
 			person.setFamilyName(familyName);
 			try {
 			    System.out.println("before get the subject inforamtion");
 				SubjectInfo registeredInfo = D1Client.getCN().getSubjectInfo(null, person.getSubject());
-				System.out.println("after get the subject inforamtion");
+				System.out.println("after get the subject inforamtion "+registeredInfo.toString());
 			} catch (NotFound nf) {
 				// so register them
 			    System.out.println("we can't get the subject inforamtion, so will register it.");
