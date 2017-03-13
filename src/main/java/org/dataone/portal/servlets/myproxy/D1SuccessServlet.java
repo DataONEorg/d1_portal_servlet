@@ -27,7 +27,6 @@ import static edu.uiuc.ncsa.security.util.pkcs.CertUtil.toPEM;
 import java.io.File;
 import java.io.PrintWriter;
 import java.security.cert.X509Certificate;
-import java.util.Set;
 
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
@@ -48,7 +47,6 @@ import org.dataone.service.types.v1.SubjectInfo;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.Asset;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.AssetResponse;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.servlet.ClientServlet;
-import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.servlet.JSPUtil;
 
@@ -85,7 +83,6 @@ public class D1SuccessServlet extends ClientServlet {
         if (identifier == null) {
             throw new ServletException("Error: No identifier for this delegation request was found. ");
         }
-        System.out.println("the identifier from the cookie is "+identifier);
         info("2.a. Getting token and verifier.");
         String token = request.getParameter(TOKEN_KEY);
         String verifier = request.getParameter(VERIFIER_KEY);
@@ -103,58 +100,15 @@ public class D1SuccessServlet extends ClientServlet {
 
         try {
             info("2.a. Getting the cert(s) from the service");
-            if(getOA4MPService() == null) {
-                System.out.println("the OA4MP service is null========");
-            }
             assetResponse = getOA4MPService().getCert(token, verifier);
-            if(assetResponse == null ) {
-                System.out.println("the assetReponse is null========");
-            }
             X509Certificate[] certificates = assetResponse.getX509Certificates();
-            
-            if(certificates == null) {
-                System.out.println("the certificate is null========");
-            }
-            
-            if(getOA4MPService().getEnvironment() == null) {
-                System.out.println("the environment is null========");
-            }
-            
-            if(getOA4MPService().getEnvironment().getAssetStore() == null) {
-                System.out.println("the asset store is null========");
-            } else {
-                System.out.println("The asset store class name is ====="+getOA4MPService().getEnvironment().getAssetStore().getClass().getCanonicalName());
-                Set<Identifier> ids = getOA4MPService().getEnvironment().getAssetStore().keySet();
-                if(ids != null) {
-                    System.out.println("The assset store does have entries");
-                    for(Identifier id : ids) {
-                        System.out.println("id is "+id.toString());
-                        System.out.println("id is "+id.getUri().toString());
-                    }
-                } else {
-                    System.out.println("The assset store doesn't have any entry");
-                }
-               
-            }
             // update the asset to include the returned certificate
             Asset asset = getOA4MPService().getEnvironment().getAssetStore().get(identifier);
-            if(asset == null) {
-                System.out.println("the asset itself is null======== and identifier is "+identifier);
-                
-            }
             asset.setCertificates(certificates);
-            System.out.println("after set the certificates to the asset");
             getOA4MPService().getEnvironment().getAssetStore().save(asset);
-            System.out.println("after saving the asset back to the asset store");
             cert = certificates[0];
-            System.out.println("after get the first certificate");
-            if(cert == null) {
-                System.out.println("the first certificate is null");
-            }
         } catch (Throwable t) {
-            t.printStackTrace();
-            //warn("2.a. Exception from the server: " + t.getCause().getMessage());
-            System.out.println("Exception while trying to get cert. message:" + t.getMessage());
+            warn("2.a. Exception from the server: " + t.getCause().getMessage());
             error("Exception while trying to get cert. message:" + t.getMessage());
             request.setAttribute("exception", t);
             JSPUtil.handleException(t, request, response, "/pages/client-error.jsp");
@@ -170,26 +124,19 @@ public class D1SuccessServlet extends ClientServlet {
 			Person person = new Person();
 			Subject subject = new Subject();
 			String dn = CertificateManager.getInstance().getSubjectDN(cert);
-			System.out.println("The subject is ==== "+dn);
 			subject.setValue(dn);
 			person.setSubject(subject);
 			LdapName ldn = new LdapName(dn);
 			String cn = ldn.getRdn(ldn.size()-1).getValue().toString();
 			String firstName = cn.split(" ")[0];
-			System.out.println("The first name is ==== "+firstName);
 			String familyName = cn.split(" ")[1];
-			System.out.println("The family name is ==== "+familyName);
 			person.addGivenName(firstName);
 			person.setFamilyName(familyName);
 			try {
-			    System.out.println("before get the subject inforamtion");
 				SubjectInfo registeredInfo = D1Client.getCN().getSubjectInfo(null, person.getSubject());
-				System.out.println("after get the subject inforamtion "+registeredInfo.toString());
 			} catch (NotFound nf) {
 				// so register them
-			    System.out.println("we can't get the subject inforamtion, so will register it.");
 				D1Client.getCN().registerAccount(null, person);
-				System.out.println("after register the cn information");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -197,19 +144,14 @@ public class D1SuccessServlet extends ClientServlet {
     	
     	// find where we should end up
     	String target = (String) request.getSession().getAttribute("target");
-    	System.out.println("after find the target ==========");
     	if (target != null) {
-    	    System.out.println("the target is not null ========== "+target);
     		// remove from the session once we use it
     		request.getSession().removeAttribute("target");
-    		System.out.println("after rmove attribute target from request ==========");
     		// send the redirect
     		response.sendRedirect(target);
-    		System.out.println("send the redirect to ========== "+target);
     		return;
     	}
-    
-    	System.out.println("the target is null and we will continue ==========");
+    		
     	// otherwise show us information
         response.setContentType("text/html");
         PrintWriter pw = response.getWriter();
