@@ -35,6 +35,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.client.v2.itk.D1Client;
 import org.dataone.configuration.Settings;
@@ -61,6 +63,7 @@ public class D1SuccessServlet extends ClientServlet {
     // if they are still ok to use...)
     public static final String TOKEN_KEY = "oauth_token";
     public static final String VERIFIER_KEY = "oauth_verifier";
+    private static Log log = LogFactory.getLog(D1SuccessServlet.class);
     
 	protected int maxAttempts = 10;
 	
@@ -83,6 +86,7 @@ public class D1SuccessServlet extends ClientServlet {
         if (identifier == null) {
             throw new ServletException("Error: No identifier for this delegation request was found. ");
         }
+        log.debug("D1SuccessServlet.doit - the identifier from the cookie is "+identifier);
         info("2.a. Getting token and verifier.");
         String token = request.getParameter(TOKEN_KEY);
         String verifier = request.getParameter(VERIFIER_KEY);
@@ -104,11 +108,17 @@ public class D1SuccessServlet extends ClientServlet {
             X509Certificate[] certificates = assetResponse.getX509Certificates();
             // update the asset to include the returned certificate
             Asset asset = getOA4MPService().getEnvironment().getAssetStore().get(identifier);
+            if(asset == null) {
+                throw new Exception("The credential for the identifier "+identifier+" can't be found in the system. You may have to log out from your identity provider web site and clear up cookies in your browser. Then try again.");
+            }
+            log.info("D1SuccessServlet.doit - the asset store class name is "+getOA4MPService().getEnvironment().getAssetStore().getClass().getCanonicalName());
             asset.setCertificates(certificates);
             getOA4MPService().getEnvironment().getAssetStore().save(asset);
             cert = certificates[0];
         } catch (Throwable t) {
-            warn("2.a. Exception from the server: " + t.getCause().getMessage());
+            t.printStackTrace();
+            log.error("D1SuccessServlet.doit - there is an error here: ", t);
+            warn("2.a. Exception from the server: " + t.getMessage());
             error("Exception while trying to get cert. message:" + t.getMessage());
             request.setAttribute("exception", t);
             JSPUtil.handleException(t, request, response, "/pages/client-error.jsp");
