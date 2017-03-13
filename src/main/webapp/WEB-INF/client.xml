@@ -26,9 +26,15 @@
 			<clients/>
 			<clientApprovals/>
 		</postgresql>-->
-		<memoryStore>
+		<!--<memoryStore>
           <assetStore/>
-    </memoryStore>
+         </memoryStore> -->
+         
+         <fileStore path="/var/dataone/portal/storage">
+              <assetStore/>
+              <clients/>
+              <clientApprovals/>
+         </fileStore>
 		
 		<enableAssetCleanup>true</enableAssetCleanup>
 		<maxAssetLifetime>865000</maxAssetLifetime>
