@@ -108,12 +108,16 @@ public class D1SuccessServlet extends ClientServlet {
             X509Certificate[] certificates = assetResponse.getX509Certificates();
             // update the asset to include the returned certificate
             Asset asset = getOA4MPService().getEnvironment().getAssetStore().get(identifier);
+            if(asset == null) {
+                throw new Exception("The credential for the identifier "+identifier+" can't be found in the system. You may have to log out from your identity provider web site and clear up cookies in your browser. Then try again.");
+            }
             log.info("D1SuccessServlet.doit - the asset store class name is "+getOA4MPService().getEnvironment().getAssetStore().getClass().getCanonicalName());
             asset.setCertificates(certificates);
             getOA4MPService().getEnvironment().getAssetStore().save(asset);
             cert = certificates[0];
         } catch (Throwable t) {
             t.printStackTrace();
+            log.error("D1SuccessServlet.doit - there is an error here: ", t);
             warn("2.a. Exception from the server: " + t.getMessage());
             error("Exception while trying to get cert. message:" + t.getMessage());
             request.setAttribute("exception", t);
