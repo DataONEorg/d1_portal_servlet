@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.dataone</groupId>
     <artifactId>d1_portal_servlet</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>2.4.0-SNAPSHOT</version>
     <name>d1_portal_servlet</name>
     <packaging>war</packaging>
     <url>http://maven.apache.org</url>
@@ -10,7 +10,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <compiler.target.version>1.7</compiler.target.version>
         <hazelcast.version>2.4.1</hazelcast.version>
-        <d1_portal.version>2.3.0-SNAPSHOT</d1_portal.version>
+        <d1_portal.version>2.4.0-SNAPSHOT</d1_portal.version>
         <d1_annotator_version>0.1-SNAPSHOT</d1_annotator_version>
     </properties>
     <build>
