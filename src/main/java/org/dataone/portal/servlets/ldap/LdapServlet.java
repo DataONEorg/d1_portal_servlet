@@ -137,7 +137,7 @@ public class LdapServlet extends HttpServlet {
 			// test authentication against LDAP
 			authenticated = auth.authenticate(username, password);
 		} else {
-			log.warn("Unable to authenticate LDAP user: " + username + ". Missing username or password.");
+			log.warn("Unable to authenticate LDAP user. Missing username or password.");
 			//Go back to the target with an error URL parameter
 			response.sendRedirect(target + "?error=Unable%20to%20authenticate%20LDAP%20user");
 			return;
