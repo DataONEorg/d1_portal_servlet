@@ -416,8 +416,14 @@ public class AuthLdap {
 		env.put(Context.PROVIDER_URL, ldapUrl + ldapBase);
 		try {
 			int position = user.indexOf(",");
+			
+			if(position < 0){
+				return null;
+			}
+			
 			String uid = user.substring(user.indexOf("=") + 1, position);
 			log.info("AuthLdap.getIdentifyingName - uid is: " + uid);
+
 			String org = user.substring(user.indexOf("=", position + 1) + 1, user
 					.indexOf(",", position + 1));
 			log.info("AuthLdap.getIdentifyingName - org is: " + org);
