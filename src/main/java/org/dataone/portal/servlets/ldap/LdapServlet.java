@@ -131,8 +131,17 @@ public class LdapServlet extends HttpServlet {
 			password = request.getParameter("password");
 		}
 		
-		// test authentication against LDAP
-		boolean authenticated = auth.authenticate(username, password);
+		boolean authenticated;
+		
+		if((username != null && !username.isEmpty()) && (password != null && !password.isEmpty())) { 		
+			// test authentication against LDAP
+			authenticated = auth.authenticate(username, password);
+		} else {
+			log.warn("Unable to authenticate LDAP user. Missing username or password.");
+			//Go back to the target with an error URL parameter
+			response.sendRedirect(target + "?error=Unable%20to%20authenticate%20LDAP%20user");
+			return;
+		}
 		
 		if (authenticated) {
 			SubjectInfo info = auth.getSubjectInfo(username);
@@ -162,9 +171,9 @@ public class LdapServlet extends HttpServlet {
 			return;
 		}
 		
-		// otherwise an error
-		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unable to authenticate user: " + username);
-		
+		// Go back to the target with an error URL parameter
+		log.warn("Unable to authenticate LDAP user: " + username);
+		response.sendRedirect(target + "?error=Unable%20to%20authenticate%20LDAP%20user");
 	}
 	
 
