@@ -93,91 +93,91 @@ public class SessionHelperTest {
             // the rest are autopopulated return values
             /////////////////////////////////////////////
 
-// TODO: uncomment the v3.0.1 methods in trunk, still at 2.5 in 2.3 branch....            
+          
 //            @Override
-//            public Dynamic addFilter(String arg0, String arg1) {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
-//
-//            @Override
-//            public Dynamic addFilter(String arg0, Filter arg1) {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
-//
-//            @Override
-//            public Dynamic addFilter(String arg0,
-//                    Class<? extends Filter> arg1) {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
-//
-//            @Override
-//            public void addListener(String arg0) {
-//                // TODO Auto-generated method stub
-//
-//            }
-//
-//            @Override
-//            public <T extends EventListener> void addListener(T arg0) {
-//                // TODO Auto-generated method stub
-//
-//            }
-//
-//            @Override
-//            public void addListener(Class<? extends EventListener> arg0) {
-//                // TODO Auto-generated method stub
-//
-//            }
-//
-//            @Override
-//            public javax.servlet.ServletRegistration.Dynamic addServlet(
-//                    String arg0, String arg1) {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
-//
-//            @Override
-//            public javax.servlet.ServletRegistration.Dynamic addServlet(
-//                    String arg0, Servlet arg1) {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
-//
-//            @Override
-//            public javax.servlet.ServletRegistration.Dynamic addServlet(
-//                    String arg0, Class<? extends Servlet> arg1) {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
-//
-//            @Override
-//            public <T extends Filter> T createFilter(Class<T> arg0)
-//                    throws ServletException {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
-//
-//            @Override
-//            public <T extends EventListener> T createListener(
-//                    Class<T> arg0) throws ServletException {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
-//
-//            @Override
-//            public <T extends Servlet> T createServlet(Class<T> arg0)
-//                    throws ServletException {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
-//
-//            @Override
-//            public void declareRoles(String... arg0) {
-//                // TODO Auto-generated method stub
-//
-//            }
+            public Dynamic addFilter(String arg0, String arg1) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public Dynamic addFilter(String arg0, Filter arg1) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public Dynamic addFilter(String arg0,
+                    Class<? extends Filter> arg1) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public void addListener(String arg0) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public <T extends EventListener> void addListener(T arg0) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void addListener(Class<? extends EventListener> arg0) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public javax.servlet.ServletRegistration.Dynamic addServlet(
+                    String arg0, String arg1) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public javax.servlet.ServletRegistration.Dynamic addServlet(
+                    String arg0, Servlet arg1) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public javax.servlet.ServletRegistration.Dynamic addServlet(
+                    String arg0, Class<? extends Servlet> arg1) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public <T extends Filter> T createFilter(Class<T> arg0)
+                    throws ServletException {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public <T extends EventListener> T createListener(
+                    Class<T> arg0) throws ServletException {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public <T extends Servlet> T createServlet(Class<T> arg0)
+                    throws ServletException {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public void declareRoles(String... arg0) {
+              // TODO Auto-generated method stub
+
+            }
 
             @Override
             public Object getAttribute(String arg0) {
@@ -191,11 +191,11 @@ public class SessionHelperTest {
                 return null;
             }
 
-//            @Override
-//            public ClassLoader getClassLoader() {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
+            @Override
+            public ClassLoader getClassLoader() {
+                // TODO Auto-generated method stub
+                return null;
+            }
 
             @Override
             public ServletContext getContext(String arg0) {
@@ -209,59 +209,59 @@ public class SessionHelperTest {
                 return null;
             }
 
-//            @Override
-//            public Set<SessionTrackingMode> getDefaultSessionTrackingModes() {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
-//
-//            @Override
-//            public int getEffectiveMajorVersion() {
-//                // TODO Auto-generated method stub
-//                return 0;
-//            }
-//
-//            @Override
-//            public int getEffectiveMinorVersion() {
-//                // TODO Auto-generated method stub
-//                return 0;
-//            }
-//
-//            @Override
-//            public Set<SessionTrackingMode> getEffectiveSessionTrackingModes() {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
-//
-//            @Override
-//            public FilterRegistration getFilterRegistration(String arg0) {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
-//
-//            @Override
-//            public Map<String, ? extends FilterRegistration> getFilterRegistrations() {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
+            @Override
+            public Set<SessionTrackingMode> getDefaultSessionTrackingModes() {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public int getEffectiveMajorVersion() {
+                // TODO Auto-generated method stub
+                return 0;
+            }
+
+            @Override
+            public int getEffectiveMinorVersion() {
+                // TODO Auto-generated method stub
+                return 0;
+            }
+
+            @Override
+            public Set<SessionTrackingMode> getEffectiveSessionTrackingModes() {
+                // TODO Auto-generated method stub
+               return null;
+               }
+
+            @Override
+            public FilterRegistration getFilterRegistration(String arg0) {
+                 //TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public Map<String, ? extends FilterRegistration> getFilterRegistrations() {
+                 //TODO Auto-generated method stub
+                return null;
+            }
 
 
 
             @Override
             public Enumeration<String> getInitParameterNames() {
-                // TODO Auto-generated method stub
+                 //TODO Auto-generated method stub
                 return null;
             }
 
-//            @Override
-//            public JspConfigDescriptor getJspConfigDescriptor() {
-//                // TODO Auto-generated method stub
-//                return null;
-//            }
+            @Override
+            public JspConfigDescriptor getJspConfigDescriptor() {
+                 //TODO Auto-generated method stub
+                return null;
+            }
 
             @Override
             public int getMajorVersion() {
-                // TODO Auto-generated method stub
+                 //TODO Auto-generated method stub
                 return 0;
             }
 
