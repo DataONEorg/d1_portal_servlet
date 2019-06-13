@@ -171,7 +171,7 @@
 	</context-param>
 	<context-param>
         <param-name>client-config-location</param-name>
-        <param-value>/etc/dataone/portal/hazelcast-client.xml</param-value>
+        <param-value>/etc/dataone/portal/hazelcast-client.properties</param-value>
     </context-param>
 	<context-param>
 	    <param-name>map-name</param-name>
@@ -190,7 +190,7 @@
 		
 		<init-param>
             <param-name>client-config-location</param-name>
-            <param-value>/etc/dataone/portal/hazelcast-client.xml</param-value>
+            <param-value>/etc/dataone/portal/hazelcast-client.properties</param-value>
         </init-param>
 		<!--
 		    Name of the distributed map storing

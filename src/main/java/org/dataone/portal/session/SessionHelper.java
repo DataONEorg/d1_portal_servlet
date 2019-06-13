@@ -1,5 +1,6 @@
 package org.dataone.portal.session;
 
+import java.net.InetSocketAddress;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,8 +13,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.hazelcast.client.ClientConfig;
+import com.hazelcast.client.ClientConfigBuilder;
 import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.config.FileSystemXmlConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
@@ -46,17 +47,19 @@ public class SessionHelper {
 		try {
 			// connect to HZ cluster as client for sharing sessions
 			String configFileName = config.getServletContext().getInitParameter("client-config-location");
-			log.debug("SessionHelper.init ================== the client configuration file path is "+configFileName);
-			FileSystemXmlConfig hzConfig = new FileSystemXmlConfig(configFileName);
-			String hzGroupName = hzConfig.getGroupConfig().getName();
-			log.debug("SessionHelper.init ================== the group name from the client configuration is "+hzGroupName);
-	        String hzGroupPassword = hzConfig.getGroupConfig().getPassword();
-	        String hzAddress = hzConfig.getNetworkConfig().getInterfaces().getInterfaces().iterator().next() + ":" + hzConfig.getNetworkConfig().getPort();
-	        log.debug("SessionHelper.init ================== the hz address from the client configuration is "+hzAddress);
-	        ClientConfig cc = new ClientConfig();
-	        cc.getGroupConfig().setName(hzGroupName);
-	        cc.getGroupConfig().setPassword(hzGroupPassword);
-	        cc.addAddress(hzAddress);
+			log.info("SessionHelper.init ================== the client configuration file path is "+configFileName);
+			
+			ClientConfig cc = new ClientConfigBuilder(configFileName).build();
+			if (log.isDebugEnabled()) {
+			    log.debug("SessionHelper.init ================== the group name from the client configuration is " + cc.getGroupConfig().getName());
+			    
+			    InetSocketAddress address = cc.getAddressList().iterator().next();
+			    log.debug("SessionHelper.init ================== the hz address from the client configuration is " + address.getHostString() + ":" + address.getPort());
+
+			    log.debug("SessionHelper.init ================== the reconnection timeout from the client configuration is " + cc.getReConnectionTimeOut());
+			    log.debug("SessionHelper.init ================== the reconnection attempts from the client configuration is " + cc.getReconnectionAttemptLimit());
+			}
+			
 			HazelcastInstance hzInstance = HazelcastClient.newHazelcastClient(cc);
 			String sessionMapName = config.getServletContext().getInitParameter("map-name");
 			sessions = hzInstance.getMap(sessionMapName);
