@@ -20,6 +20,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.1.1</version>
                 <configuration>
+                    <packagingExcludes>WEB-INF/lib/httpclient-4.5.2.jar,WEB-INF/lib/httpcore-4.4.4.jar</packagingExcludes>
                     <outputDirectory>${project.basedir}/out</outputDirectory>
                     <workDirectory>${project.build.directory}/tmp/war/work</workDirectory>
                     <webappDirectory>${project.basedir}/out/exploded/portal</webappDirectory>
