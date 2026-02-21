@@ -1,0 +1,13 @@
+## Java / Maven
+
+target/
+out/
+
+
+# VS Code
+
+.vscode/
+
+# Misc backups
+
+*.bak
