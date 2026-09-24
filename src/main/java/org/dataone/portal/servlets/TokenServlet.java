@@ -35,9 +35,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.portal.TokenGenerator;
+import org.dataone.portal.oidc.KeycloakProvider;
 import org.dataone.portal.session.PortalSession;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jwt.JWTClaimsSet;
 
 /**
  * Simple servlet for handling ORCID auth
@@ -50,7 +52,16 @@ public class TokenServlet extends HttpServlet {
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,
 			IOException {
 		
-		// handle the requests
+		// a Keycloak access token in the Authorization header is exchanged for a DataONE JWT
+		String bearer = getBearerToken(request);
+		KeycloakProvider provider = getProvider();
+		if (bearer != null && provider.isIssuedBy(bearer)) {
+			exchangeAccessToken(provider, bearer, response);
+			return;
+		}
+		
+		// otherwise issue a token for the logged-in session, if any; other bearer tokens (such
+		// as DataONE JWTs) are ignored here, as before
 		String token = null;
 		try {
 			token = this.getSessionToken(request, response);	
@@ -65,6 +76,46 @@ public class TokenServlet extends HttpServlet {
 		ServletOutputStream out = response.getOutputStream();
 		IOUtils.write(token, out);
 
+	}
+	
+	/**
+	 * @return the Keycloak provider; tests override this
+	 */
+	protected KeycloakProvider getProvider() {
+		return KeycloakProvider.getInstance();
+	}
+	
+	/**
+	 * @return the token from an "Authorization: Bearer" header, or null
+	 */
+	private static String getBearerToken(HttpServletRequest request) {
+		String header = request.getHeader("Authorization");
+		if (header == null || !header.regionMatches(true, 0, "Bearer ", 0, 7)) {
+			return null;
+		}
+		String token = header.substring(7).trim();
+		return token.isEmpty() ? null : token;
+	}
+	
+	/**
+	 * Validate a Keycloak access token and write a DataONE JWT for its subject, or answer 401 if
+	 * the token isn't valid.
+	 */
+	private void exchangeAccessToken(KeycloakProvider provider, String accessToken,
+			HttpServletResponse response) throws IOException {
+		String jwt;
+		try {
+			JWTClaimsSet claims = provider.validateAccessToken(accessToken);
+			jwt = TokenGenerator.getInstance().getJWT(provider.getSubject(claims),
+					KeycloakProvider.getName(claims));
+		} catch (Exception e) {
+			log.info("Rejecting Keycloak access token: " + e.getMessage());
+			response.setHeader("WWW-Authenticate", "Bearer error=\"invalid_token\"");
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			return;
+		}
+		ServletOutputStream out = response.getOutputStream();
+		IOUtils.write(jwt, out);
 	}
 	
 	private String getSessionToken(HttpServletRequest request, HttpServletResponse response) throws IOException, JOSEException, ParseException {
