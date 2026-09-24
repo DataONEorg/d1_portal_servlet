@@ -15,11 +15,8 @@ import javax.servlet.ServletContextEvent;
 
 import org.dataone.configuration.Settings;
 import org.dataone.portal.servlets.oauth.OrcidOAuthServlet;
-import org.dataone.portal.session.SessionHelper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 /**
  * Tests for {@link PortalConfigListener}.
@@ -69,12 +66,7 @@ public class PortalConfigListenerTest {
         String file = writeProperties("orcid.client.id=APP-FROM-LISTENER\n");
         new PortalConfigListener().contextInitialized(eventFor(file, null));
 
-        try (MockedStatic<SessionHelper> sessionHelperStatic =
-                 Mockito.mockStatic(SessionHelper.class)) {
-            sessionHelperStatic.when(SessionHelper::getInstance)
-                .thenReturn(mock(SessionHelper.class));
-            new OrcidOAuthServlet().init(mock(ServletConfig.class));
-        }
+        new OrcidOAuthServlet().init(mock(ServletConfig.class));
 
         Field clientId = OrcidOAuthServlet.class.getDeclaredField("CLIENT_ID");
         clientId.setAccessible(true);

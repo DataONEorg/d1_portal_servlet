@@ -24,38 +24,31 @@ package org.dataone.portal.servlets;
 
 import java.io.IOException;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.dataone.portal.PortalCertificateManager;
-import org.dataone.portal.session.SessionHelper;
+import org.dataone.portal.session.PortalSession;
 
 /**
  * Simple servlet for handling ORCID auth
  */
 public class LogoutServlet extends HttpServlet {
 	
-	public void init(ServletConfig config) throws ServletException {
-		
-		// initialize the session helper
-		SessionHelper.getInstance().init(config);
-		
-	}
-	
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,
 			IOException {
 		
 		// handle the request
-		HttpSession session = request.getSession();
 		String target = request.getParameter("target");
 		
 		// get rid of session
-		SessionHelper.getInstance().removeSession(session.getId());
+		PortalSession session = PortalSession.find(request);
+		if (session != null) {
+			session.invalidate();
+		}
 		
 		// get rid of portal session
 		PortalCertificateManager.getInstance().removeCookie(response);

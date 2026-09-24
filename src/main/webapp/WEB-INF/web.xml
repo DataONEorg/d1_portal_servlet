@@ -1,20 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-                  http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-         version="2.5">
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                  http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0"
+         metadata-complete="true">
 
-    <display-name>MyProxy Portal</display-name>
+    <display-name>DataONE Portal</display-name>
 
     <!-- load portal.properties into Settings before any servlet starts -->
     <listener>
         <listener-class>org.dataone.portal.PortalConfigListener</listener-class>
     </listener>
     
-    <!-- ensure session lasts as long as a token -->
+    <!-- ensure session lasts as long as a token (18 hours, TokenGenerator's default TTL) -->
     <session-config>
     	<session-timeout>1080</session-timeout>
+    	<!-- SameSite=None is added by the CN's Apache proxy, not here; MetacatUI's
+    	     cross-site /token requests need it until they stop relying on this cookie -->
+    	<cookie-config>
+    		<http-only>true</http-only>
+    		<secure>true</secure>
+    	</cookie-config>
+    	<tracking-mode>COOKIE</tracking-mode>
     </session-config>
 
     <!--  ORCID OAuth servlet -->
@@ -57,81 +65,5 @@
         <param-name>portal.properties.file</param-name>
         <param-value>/var/lib/tomcat7/webapps/portal/WEB-INF/portal.properties</param-value>
     </context-param>
-	
-	<!--  share HZ properties for Oauth helper -->
-	<context-param>
-	    <param-name>config-location</param-name>
-	    <param-value>/etc/dataone/portal/hazelcast.xml</param-value>
-	</context-param>
-	<context-param>
-        <param-name>client-config-location</param-name>
-        <param-value>/etc/dataone/portal/hazelcast-client.properties</param-value>
-    </context-param>
-	<context-param>
-	    <param-name>map-name</param-name>
-	    <param-value>d1PortalOAuth</param-value>
-	</context-param>
-      
-	<!-- Hazelcast Session replication -->
-	<filter>
-		<filter-name>hazelcast-filter</filter-name>
-		<filter-class>com.hazelcast.web.WebFilter</filter-class>
-		<!-- point to DataONE hazelcast config -->           
-		<init-param>
-		    <param-name>config-location</param-name>
-		    <param-value>/etc/dataone/portal/hazelcast.xml</param-value>
-		</init-param>
-		
-		<init-param>
-            <param-name>client-config-location</param-name>
-            <param-value>/etc/dataone/portal/hazelcast-client.properties</param-value>
-        </init-param>
-		<!--
-		    Name of the distributed map storing
-		    your web session objects
-		-->
-		<init-param>
-		    <param-name>map-name</param-name>
-		    <param-value>d1PortalSessions</param-value>
-		</init-param>
-		<!--
-		    How is your load-balancer configured?
-		    stick-session means all requests of a session
-		    is routed to the node where the session is first created.
-		    This is excellent for performance.
-		    If sticky-session is set to false, when a session is updated
-		    on a node, entry for this session on all other nodes is invalidated.
-		    You have to know how your load-balancer is configured before
-		    setting this parameter. Default is true.
-		-->
-		<init-param>
-		    <param-name>sticky-session</param-name>
-		    <param-value>true</param-value>
-		</init-param>
-		<!--
-		    Are you debugging? Default is false.
-		-->
-		<init-param>
-		    <param-name>debug</param-name>
-		    <param-value>true</param-value>
-		</init-param>
-		<init-param>
-		    <param-name>instance-name</param-name>
-		    <param-value>dataonePortalInstance</param-value>
-		</init-param>
-
-	</filter>
-	<filter-mapping>
-	    <filter-name>hazelcast-filter</filter-name>
-	    <url-pattern>/*</url-pattern>
-	    <dispatcher>FORWARD</dispatcher>
-	    <dispatcher>INCLUDE</dispatcher>
-	    <dispatcher>REQUEST</dispatcher>
-	</filter-mapping>
-	
-	<!-- for session replication when deployed with round robin DNS -->
-	<listener>
-	    <listener-class>com.hazelcast.web.SessionListener</listener-class>
-	</listener>
 	
 </web-app>

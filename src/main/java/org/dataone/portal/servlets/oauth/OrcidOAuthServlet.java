@@ -23,14 +23,12 @@
 package org.dataone.portal.servlets.oauth;
 
 import java.io.IOException;
-import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUtils;
 
 import org.apache.commons.logging.Log;
@@ -46,7 +44,7 @@ import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.message.types.ResponseType;
 import org.dataone.client.v2.itk.D1Client;
 import org.dataone.configuration.Settings;
-import org.dataone.portal.session.SessionHelper;
+import org.dataone.portal.session.PortalSession;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotFound;
 import org.dataone.service.types.v1.Person;
@@ -67,10 +65,18 @@ public class OrcidOAuthServlet extends HttpServlet {
 	private static String CLIENT_SECRET = null;
 	private static String ORCID_PREFIX = null;
 
+	/**
+	 * The parts of ORCID's access token response that the portal uses
+	 */
+	protected static class OrcidToken {
+		String accessToken;
+		Long expiresIn;
+		String scope;
+		String orcid;
+		String name;
+	}
+
 	public void init(ServletConfig config) throws ServletException {
-		
-		// for persisting session information across requests, callbacks and multiple servers
-		SessionHelper.getInstance().init(config);
 		
 		// init the properties
 		AUTHORIZATION_LOCATION = Settings.getConfiguration().getString("orcid.authorization.location");
@@ -108,12 +114,9 @@ public class OrcidOAuthServlet extends HttpServlet {
 		// we just come back here
 		StringBuffer redirectUrl = HttpUtils.getRequestURL(request);
 		
-		// remember for the callback
-		HttpSession session = request.getSession();
-		// where should we end up with afterward?
-		String target = request.getParameter("target");
-		session.setAttribute("target", target);
-		SessionHelper.getInstance().saveSession(session);
+		// remember for the callback where we should end up afterward
+		PortalSession session = PortalSession.create(request);
+		session.setTarget(request.getParameter("target"));
 		
 		OAuthClientRequest oauthRequest = OAuthClientRequest
 				   .authorizationLocation(AUTHORIZATION_LOCATION)
@@ -121,7 +124,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 				   .setRedirectURI(redirectUrl.toString())
 				   .setResponseType(ResponseType.CODE.toString())
 				   .setScope("/authenticate")
-				   .setState(session.getId())
+				   .setState(session.newOAuthState())
 				   .setParameter("show_login", "true")
 				   .buildQueryMessage();
 		
@@ -135,7 +138,48 @@ public class OrcidOAuthServlet extends HttpServlet {
 		// get the auth code from the callback
 		OAuthAuthzResponse oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
 		String code = oar.getCode();
-		String sessionId = oar.getState();
+		
+		// the callback must come back to the session that started the login, with its state
+		PortalSession session = PortalSession.find(request);
+		if (session == null || !session.consumeOAuthState(oar.getState())) {
+			log.warn("Rejecting ORCID callback with no session or a mismatched state");
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid or expired login request");
+			return;
+		}
+		
+		OrcidToken token = requestAccessToken(code);
+		
+		// include prefix
+		String orcid = ORCID_PREFIX + token.orcid;
+		String name = token.name;
+		
+		// prevent session fixation: the logged-in session gets a new id
+		request.changeSessionId();
+		session.setAccessToken(token.accessToken);
+		session.setUserId(orcid);
+		session.setName(name);
+		// optional attributes for portal
+		session.setExpiresIn(token.expiresIn);
+		session.setScope(token.scope);
+		session.setOrcid(orcid);
+		
+		registerAccount(orcid, name);
+		
+		String target = session.getTarget();
+		if (target != null) {
+			// redirect to target
+			response.sendRedirect(target);
+		} else {
+			// redirect to token context base?
+			response.sendRedirect(this.getServletContext().getResource("/").toString());
+		}
+
+	}
+	
+	/**
+	 * Exchange an authorization code for an ORCID access token
+	 */
+	protected OrcidToken requestAccessToken(String code) throws OAuthSystemException, OAuthProblemException {
 		
 		// get the access token
 		OAuthClientRequest clientRequest = OAuthClientRequest
@@ -156,26 +200,21 @@ public class OrcidOAuthServlet extends HttpServlet {
 		clientRequest.setHeader("Accept", "application/json");
         OAuthJSONAccessTokenResponse oAuthResponse = oAuthClient.accessToken(clientRequest, "POST");
 		 
-        String accessToken = oAuthResponse.getAccessToken();
-        Long expiresIn = oAuthResponse.getExpiresIn();
-		String scope = oAuthResponse.getScope();
+        OrcidToken token = new OrcidToken();
+        token.accessToken = oAuthResponse.getAccessToken();
+        token.expiresIn = oAuthResponse.getExpiresIn();
+		token.scope = oAuthResponse.getScope();
 		
 		// details about this person
-		String orcid = oAuthResponse.getParam("orcid");
-		String name = oAuthResponse.getParam("name");
-		
-		// include prefix
-		orcid = ORCID_PREFIX + orcid;
-		
-		Map<String, Object> sessionMap = SessionHelper.getInstance().getMap(sessionId);
-		sessionMap.put("accessToken", accessToken);
-		sessionMap.put("userId", orcid);
-		sessionMap.put("name", name);
-		// optional attributes for portal
-		sessionMap.put("expiresIn", expiresIn);
-		sessionMap.put("scope", scope);
-		sessionMap.put("orcid", orcid);
-		SessionHelper.getInstance().saveMap(sessionId, sessionMap);
+		token.orcid = oAuthResponse.getParam("orcid");
+		token.name = oAuthResponse.getParam("name");
+		return token;
+	}
+	
+	/**
+	 * Register the ORCID subject with the CN if it isn't already registered
+	 */
+	protected void registerAccount(String orcid, String name) {
 		
 		// attempt to register them with the CN
 		try {
@@ -204,16 +243,6 @@ public class OrcidOAuthServlet extends HttpServlet {
 			// oh well, didn't register it, or something went wrong
 			log.warn(be.getMessage(), be);
 		}
-		
-		String target = (String) sessionMap.get("target");
-		if (target != null) {
-			// redirect to target
-			response.sendRedirect(target);
-		} else {
-			// redirect to token context base?
-			response.sendRedirect(this.getServletContext().getResource("/").toString());
-		}
-
 	}
 
 }

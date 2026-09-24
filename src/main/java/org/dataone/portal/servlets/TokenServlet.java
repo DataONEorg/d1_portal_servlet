@@ -25,22 +25,19 @@ package org.dataone.portal.servlets;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
-import java.util.Map;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.IOUtils;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.portal.PortalCertificateManager;
 import org.dataone.portal.TokenGenerator;
-import org.dataone.portal.session.SessionHelper;
+import org.dataone.portal.session.PortalSession;
 import org.dataone.service.types.v1.SubjectInfo;
 
 import com.nimbusds.jose.JOSEException;
@@ -49,13 +46,6 @@ import com.nimbusds.jose.JOSEException;
  * Simple servlet for handling ORCID auth
  */
 public class TokenServlet extends HttpServlet {
-	
-	public void init(ServletConfig config) throws ServletException {
-		
-		// initialize the session helper
-		SessionHelper.getInstance().init(config);
-		
-	}
 	
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,
@@ -120,16 +110,12 @@ public class TokenServlet extends HttpServlet {
 	
 	private String getSessionToken(HttpServletRequest request, HttpServletResponse response) throws IOException, JOSEException, ParseException {
 		
-		// look up the token
-		HttpSession session = request.getSession();
-		Map<String, Object> sessionMap = SessionHelper.getInstance().getMap(session.getId());
-		String accessToken = (String) sessionMap.get("accessToken");
-		String userId = (String) sessionMap.get("userId");
-		String name = (String) sessionMap.get("name");
+		// look up the login, without creating a session for anonymous callers
+		PortalSession session = PortalSession.find(request);
 		
 		String jwt = null;
-		if (accessToken != null) {
-			jwt = TokenGenerator.getInstance().getJWT(userId, name);
+		if (session != null && session.isLoggedIn()) {
+			jwt = TokenGenerator.getInstance().getJWT(session.getUserId(), session.getName());
 		}
 		
 		return jwt;
