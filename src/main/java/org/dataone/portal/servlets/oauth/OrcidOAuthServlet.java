@@ -190,9 +190,6 @@ public class OrcidOAuthServlet extends HttpServlet {
                 .setCode(code)
                 .buildBodyMessage();
 		
-		String body = clientRequest.getBody();
-		System.out.println("body=" + body);
-		
 		//create OAuth client that uses custom http client under the hood
         OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
         
