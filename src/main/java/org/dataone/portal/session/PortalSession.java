@@ -21,6 +21,17 @@ public class PortalSession {
     public static final String ORCID = "orcid";
     public static final String TARGET = "target";
     public static final String OAUTH_STATE = "oauthState";
+    public static final String AUTH_SOURCE = "authSource";
+    public static final String REFRESH_TOKEN = "refreshToken";
+    public static final String ID_TOKEN = "idToken";
+    public static final String OIDC_NONCE = "oidcNonce";
+    public static final String PKCE_VERIFIER = "pkceVerifier";
+
+    /** {@link #AUTH_SOURCE} for logins through the direct ORCID OAuth servlet */
+    public static final String SOURCE_ORCID = "orcid";
+
+    /** {@link #AUTH_SOURCE} for logins through Keycloak OIDC */
+    public static final String SOURCE_KEYCLOAK = "keycloak";
 
     private static final SecureRandom random = new SecureRandom();
 
@@ -44,6 +55,14 @@ public class PortalSession {
     public static PortalSession find(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         return session == null ? null : new PortalSession(session);
+    }
+
+    /**
+     * Store an OAuth state value generated elsewhere (for example by an OIDC library), to be
+     * checked with {@link #consumeOAuthState(String)}.
+     */
+    public void setOAuthState(String state) {
+        session.setAttribute(OAUTH_STATE, state);
     }
 
     /**
@@ -129,6 +148,54 @@ public class PortalSession {
 
     public void setTarget(String target) {
         session.setAttribute(TARGET, target);
+    }
+
+    public String getAuthSource() {
+        return (String) session.getAttribute(AUTH_SOURCE);
+    }
+
+    public void setAuthSource(String authSource) {
+        session.setAttribute(AUTH_SOURCE, authSource);
+    }
+
+    public String getRefreshToken() {
+        return (String) session.getAttribute(REFRESH_TOKEN);
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        session.setAttribute(REFRESH_TOKEN, refreshToken);
+    }
+
+    public String getIdToken() {
+        return (String) session.getAttribute(ID_TOKEN);
+    }
+
+    public void setIdToken(String idToken) {
+        session.setAttribute(ID_TOKEN, idToken);
+    }
+
+    /**
+     * Store the OIDC nonce and PKCE code verifier for a login in progress.
+     */
+    public void setLoginSecrets(String nonce, String pkceVerifier) {
+        session.setAttribute(OIDC_NONCE, nonce);
+        session.setAttribute(PKCE_VERIFIER, pkceVerifier);
+    }
+
+    public String getNonce() {
+        return (String) session.getAttribute(OIDC_NONCE);
+    }
+
+    public String getPkceVerifier() {
+        return (String) session.getAttribute(PKCE_VERIFIER);
+    }
+
+    /**
+     * Remove the OIDC nonce and PKCE code verifier once a login has completed.
+     */
+    public void clearLoginSecrets() {
+        session.removeAttribute(OIDC_NONCE);
+        session.removeAttribute(PKCE_VERIFIER);
     }
 
     /**

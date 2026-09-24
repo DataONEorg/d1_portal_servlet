@@ -35,6 +35,16 @@
 		<url-pattern>/oauth</url-pattern>
 	</servlet-mapping>
 	
+	<!--  Keycloak OpenID Connect login servlet -->
+	<servlet>
+		<servlet-name>oidcServlet</servlet-name>
+		<servlet-class>org.dataone.portal.servlets.oidc.KeycloakOidcServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>oidcServlet</servlet-name>
+		<url-pattern>/oidc</url-pattern>
+	</servlet-mapping>
+	
 	<!-- token endpoint -->
 	<servlet>
 		<servlet-name>tokenServlet</servlet-name>

@@ -108,7 +108,15 @@
             <type>jar</type>
         </dependency>
 
-        <!-- OAuth 2.0 client -->
+        <!-- OpenID Connect client for Keycloak login and access token validation;
+             uses the nimbus-jose-jwt version that d1_portal brings -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>oauth2-oidc-sdk</artifactId>
+            <version>11.38.2</version>
+        </dependency>
+
+        <!-- OAuth 2.0 client for the direct ORCID login -->
         <dependency>
             <groupId>org.apache.oltu.oauth2</groupId>
             <artifactId>org.apache.oltu.oauth2.client</artifactId>

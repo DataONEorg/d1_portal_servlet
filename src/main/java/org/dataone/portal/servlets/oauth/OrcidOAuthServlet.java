@@ -44,15 +44,10 @@ import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.message.types.ResponseType;
-import org.dataone.client.v2.itk.D1Client;
 import org.dataone.configuration.Settings;
+import org.dataone.portal.servlets.AccountRegistration;
 import org.dataone.portal.servlets.RedirectTargets;
 import org.dataone.portal.session.PortalSession;
-import org.dataone.service.exceptions.BaseException;
-import org.dataone.service.exceptions.NotFound;
-import org.dataone.service.types.v1.Person;
-import org.dataone.service.types.v1.Subject;
-import org.dataone.service.types.v1.SubjectInfo;
 
 /**
  * Simple servlet for handling ORCID auth
@@ -176,6 +171,7 @@ public class OrcidOAuthServlet extends HttpServlet {
 		
 		// prevent session fixation: the logged-in session gets a new id
 		request.changeSessionId();
+		session.setAuthSource(PortalSession.SOURCE_ORCID);
 		session.setAccessToken(token.accessToken);
 		session.setUserId(orcid);
 		session.setName(name);
@@ -242,33 +238,14 @@ public class OrcidOAuthServlet extends HttpServlet {
 	 */
 	protected void registerAccount(String orcid, String name) {
 		
-		// attempt to register them with the CN
-		try {
-			
-			Subject subject = new Subject();
-			subject.setValue(orcid);
-			Person person = new Person();
-			person.setSubject(subject);
-			
-			// rudimentary parsing of name if possible
-			String givenName = null;
-			String familyName = name;
-			if (name != null &&name.contains(" ")) {
-				givenName = name.split(" ", 2)[0];
-				familyName = name.split(" ", 2)[1];
-			}
-			person.addGivenName(givenName);
-			person.setFamilyName(familyName);
-			try {
-				SubjectInfo registeredInfo = D1Client.getCN().getSubjectInfo(null, subject);
-			} catch (NotFound nf) {
-				// so register them
-				D1Client.getCN().registerAccount(null, person);
-			}
-		} catch (BaseException be) {
-			// oh well, didn't register it, or something went wrong
-			log.warn(be.getMessage(), be);
+		// rudimentary parsing of name if possible
+		String givenName = null;
+		String familyName = name;
+		if (name != null && name.contains(" ")) {
+			givenName = name.split(" ", 2)[0];
+			familyName = name.split(" ", 2)[1];
 		}
+		AccountRegistration.registerIfNeeded(orcid, givenName, familyName);
 	}
 
 }
