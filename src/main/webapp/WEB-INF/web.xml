@@ -79,18 +79,6 @@
 		<url-pattern>/ldap</url-pattern>
 	</servlet-mapping>
 	
-	<!-- identity servlet (old portal) -->
-	<servlet>
-        <description>Servlet to edit account info</description>
-        <servlet-name>identity</servlet-name>
-        <servlet-class>org.dataone.portal.servlets.IdentityServlet</servlet-class>
-        <load-on-startup>0</load-on-startup>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>identity</servlet-name>
-        <url-pattern>/identity</url-pattern>
-    </servlet-mapping>
-    
 	<!-- token endpoint -->
 	<servlet>
 		<servlet-name>tokenServlet</servlet-name>
