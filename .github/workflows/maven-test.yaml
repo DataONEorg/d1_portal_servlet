@@ -1,0 +1,37 @@
+# Build and test d1_portal_servlet with Maven on JDK 25.
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "*" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Java JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '25'
+        distribution: 'temurin'
+        cache: maven
+    # d1_portal SNAPSHOT builds are not published to maven.dataone.org, so build and
+    # install the version this project depends on before building the webapp
+    - name: Check out d1_portal
+      uses: actions/checkout@v4
+      with:
+        repository: DataONEorg/d1_portal
+        ref: develop
+        path: d1_portal
+    - name: Install d1_portal
+      run: mvn -B install -DskipTests --file d1_portal/pom.xml
+    - name: Build and test with Maven
+      run: mvn -B verify --file pom.xml
