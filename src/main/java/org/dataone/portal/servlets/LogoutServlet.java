@@ -29,7 +29,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.dataone.portal.PortalCertificateManager;
 import org.dataone.portal.session.PortalSession;
 
 /**
@@ -49,9 +48,6 @@ public class LogoutServlet extends HttpServlet {
 		if (session != null) {
 			session.invalidate();
 		}
-		
-		// get rid of portal session
-		PortalCertificateManager.getInstance().removeCookie(response);
 		
 		// return to where they came
 		if (target == null) {

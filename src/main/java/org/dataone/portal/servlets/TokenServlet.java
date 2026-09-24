@@ -23,12 +23,10 @@
 package org.dataone.portal.servlets;
 
 import java.io.IOException;
-import java.security.cert.X509Certificate;
 import java.text.ParseException;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,11 +34,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dataone.client.auth.CertificateManager;
-import org.dataone.portal.PortalCertificateManager;
 import org.dataone.portal.TokenGenerator;
 import org.dataone.portal.session.PortalSession;
-import org.dataone.service.types.v1.SubjectInfo;
 
 import com.nimbusds.jose.JOSEException;
 
@@ -58,16 +53,9 @@ public class TokenServlet extends HttpServlet {
 		// handle the requests
 		String token = null;
 		try {
-			token = this.getCertificateToken(request, response);	
+			token = this.getSessionToken(request, response);	
 		} catch (Exception e) {
-			log.warn("Could not create a token from a portal certificate", e);
-		}
-		if (token == null) {
-			try {
-				token = this.getSessionToken(request, response);	
-			} catch (Exception e) {
-				log.error("Could not create a token for the session", e);
-			}
+			log.error("Could not create a token for the session", e);
 		}
 		if (token == null) {
 			token = "";
@@ -77,38 +65,6 @@ public class TokenServlet extends HttpServlet {
 		ServletOutputStream out = response.getOutputStream();
 		IOUtils.write(token, out);
 
-	}
-	
-	private String getCertificateToken(HttpServletRequest request, HttpServletResponse response) throws ServletException {
-    	String token = null;
-    	
-    	// generate a token for this user based on information in the request
-    	try {        	
-    		X509Certificate certificate = PortalCertificateManager.getInstance().getCertificate(request);
-    		if (certificate != null) {
-        		String userId = CertificateManager.getInstance().getSubjectDN(certificate);        		
-        		String fullName = null;
-        		SubjectInfo subjectInfo = CertificateManager.getInstance().getSubjectInfo(certificate);
-        		if (subjectInfo != null) {
-        			fullName = subjectInfo.getPerson(0).getFamilyName();
-        			if (subjectInfo.getPerson(0).getGivenNameList() != null && subjectInfo.getPerson(0).getGivenNameList().size() > 0) {
-        				fullName = subjectInfo.getPerson(0).getGivenName(0) + fullName;
-        			}
-        		}
-    			token = TokenGenerator.getInstance().getJWT(userId, fullName);
-    			
-    			// make sure we keep the cookie on the reponse
-        		Cookie cookie = PortalCertificateManager.getInstance().getCookie(request);
-        		String identifier = cookie.getValue();
-				PortalCertificateManager.getInstance().setCookie(identifier, response);
-
-    		}
-		} catch (Exception e) {
-			throw new ServletException(e);
-		}
-    	
-    	return token;
-    
 	}
 	
 	private String getSessionToken(HttpServletRequest request, HttpServletResponse response) throws IOException, JOSEException, ParseException {
