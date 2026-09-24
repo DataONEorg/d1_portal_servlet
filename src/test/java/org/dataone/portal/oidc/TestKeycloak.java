@@ -29,7 +29,7 @@ public class TestKeycloak {
     public static final String ISSUER = "https://auth.example.org/realms/dataone";
     public static final String CLIENT_ID = "d1-confidential";
     public static final String CLIENT_SECRET = "test-secret";
-    public static final String REDIRECT_URI = "https://cn.example.org/portal/oidc";
+    public static final String REDIRECT_URI = "https://cn.example.org/portal/authorize";
     public static final String ORCID = "https://orcid.org/0000-0000-0000-0001";
     public static final String AUTHORIZATION_ENDPOINT = ISSUER + "/protocol/openid-connect/auth";
     public static final String TOKEN_ENDPOINT = ISSUER + "/protocol/openid-connect/token";
@@ -74,6 +74,7 @@ public class TestKeycloak {
             .issueTime(now)
             .expirationTime(new Date(now.getTime() + 5 * 60 * 1000))
             .claim("preferred_username", ORCID)
+            .claim("orcid", ORCID)
             .claim("given_name", "Test")
             .claim("family_name", "User");
     }

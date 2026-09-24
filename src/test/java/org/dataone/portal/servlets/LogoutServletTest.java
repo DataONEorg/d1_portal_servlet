@@ -112,7 +112,7 @@ public class LogoutServletTest {
         when(request.getParameter("target")).thenReturn(TARGET);
         HttpServletResponse response = mock(HttpServletResponse.class);
 
-        logoutServlet(new KeycloakProvider(null, "d1-confidential", null, null, null, null, null))
+        logoutServlet(KeycloakProvider.disabled())
             .doGet(request, response);
 
         verify(response).sendRedirect(TARGET);

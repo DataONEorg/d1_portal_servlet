@@ -1,11 +1,19 @@
 package org.dataone.portal.oidc;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -20,9 +28,11 @@ import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.util.DefaultResourceRetriever;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.jwt.proc.BadJWTException;
 import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.oauth2.sdk.GeneralException;
@@ -38,25 +48,36 @@ import com.nimbusds.openid.connect.sdk.validators.IDTokenValidator;
  * <p>
  * Settings (from portal.properties):
  * <ul>
+ * <li>{@code keycloak.client.secrets.file}: optional path to a {@code client_secrets.json} in
+ * the format used by the Python dataone-auth package, with {@code client_id},
+ * {@code client_secret} and {@code server_metadata_url}. Values set with the individual
+ * settings below take precedence over the file.</li>
  * <li>{@code keycloak.issuer}: the realm's issuer URL, e.g.
- * {@code https://auth.dataone.org/realms/dataone}. Keycloak support is off when this is empty.</li>
+ * {@code https://auth.dataone.org/realms/dataone}.</li>
+ * <li>{@code keycloak.server.metadata.url}: the realm's
+ * {@code .well-known/openid-configuration} URL, as an alternative to the issuer. Keycloak support
+ * is off when neither is set.</li>
  * <li>{@code keycloak.client.id}: the confidential client the portal logs in with (default
  * {@code d1-confidential}).</li>
  * <li>{@code keycloak.client.secret}: that client's secret.</li>
  * <li>{@code keycloak.redirect.uri}: this deployment's login callback URL, which must be
- * registered as a redirect URI on the client and must reach the portal's /oidc servlet.</li>
+ * registered as a redirect URI on the client and must reach the portal's /authorize
+ * servlet.</li>
  * <li>{@code keycloak.scope}: scopes requested at login (default {@code openid profile email}).</li>
  * <li>{@code keycloak.subject.claim}: the claim holding the user's DataONE subject (default
- * {@code preferred_username}, which the realm fills with the ORCID iD).</li>
- * <li>{@code keycloak.token.exchange.audiences}: comma-separated audiences an access token must
- * carry to be exchanged for a DataONE JWT (default: the client id).</li>
+ * {@code orcid}, the ORCID iD claim the realm's profile scope adds, as dataone-auth uses).</li>
+ * <li>{@code keycloak.token.exchange.audiences}: comma-separated clients whose access tokens may
+ * be exchanged for a DataONE JWT (default: the client id). The token's audience must include
+ * one of them, and its authorized party (azp), if present, must be one of them.</li>
  * </ul>
- * Endpoints are discovered from the issuer's {@code .well-known/openid-configuration} on first
- * use, and the realm's signing keys are fetched and cached from its JWKS endpoint.
+ * Endpoints are discovered from the provider metadata on first use, and the realm's signing keys
+ * are fetched and cached from its JWKS endpoint.
  */
 public class KeycloakProvider {
 
+    public static final String SECRETS_FILE = "keycloak.client.secrets.file";
     public static final String ISSUER = "keycloak.issuer";
+    public static final String METADATA_URL = "keycloak.server.metadata.url";
     public static final String CLIENT_ID = "keycloak.client.id";
     public static final String CLIENT_SECRET = "keycloak.client.secret";
     public static final String REDIRECT_URI = "keycloak.redirect.uri";
@@ -66,10 +87,13 @@ public class KeycloakProvider {
 
     public static final String DEFAULT_CLIENT_ID = "d1-confidential";
     public static final String DEFAULT_SCOPE = "openid profile email";
-    public static final String DEFAULT_SUBJECT_CLAIM = "preferred_username";
+    public static final String DEFAULT_SUBJECT_CLAIM = "orcid";
 
     /** Keycloak marks access tokens with typ=Bearer (ID tokens have typ=ID) */
     private static final String ACCESS_TOKEN_TYPE = "Bearer";
+
+    /** Longest token accepted, as in dataone-auth (MAX_TOKEN_LEN) */
+    public static final int MAX_TOKEN_LENGTH = 16_384;
 
     /** Timeout in milliseconds for fetching provider metadata and keys */
     private static final int HTTP_TIMEOUT = 5000;
@@ -79,6 +103,7 @@ public class KeycloakProvider {
     private static volatile KeycloakProvider instance;
 
     private final String issuer;
+    private final String metadataUrl;
     private final String clientId;
     private final String clientSecret;
     private final String redirectUri;
@@ -111,7 +136,10 @@ public class KeycloakProvider {
     }
 
     public static KeycloakProvider fromSettings() {
-        String clientId = Settings.getConfiguration().getString(CLIENT_ID, DEFAULT_CLIENT_ID);
+        Map<String, Object> secrets = loadSecretsFile(
+            Settings.getConfiguration().getString(SECRETS_FILE));
+
+        String clientId = setting(CLIENT_ID, secrets, "client_id", DEFAULT_CLIENT_ID);
         Set<String> audiences = new LinkedHashSet<String>();
         // split here: Settings may or may not have list delimiter parsing enabled
         for (String value : Settings.getConfiguration().getStringArray(EXCHANGE_AUDIENCES)) {
@@ -125,8 +153,9 @@ public class KeycloakProvider {
             audiences.add(clientId);
         }
         return new KeycloakProvider(Settings.getConfiguration().getString(ISSUER),
+                                    setting(METADATA_URL, secrets, "server_metadata_url", null),
                                     clientId,
-                                    Settings.getConfiguration().getString(CLIENT_SECRET),
+                                    setting(CLIENT_SECRET, secrets, "client_secret", null),
                                     Settings.getConfiguration().getString(REDIRECT_URI),
                                     Settings.getConfiguration().getString(SCOPE, DEFAULT_SCOPE),
                                     Settings.getConfiguration()
@@ -134,15 +163,54 @@ public class KeycloakProvider {
                                     audiences);
     }
 
-    public KeycloakProvider(String issuer, String clientId, String clientSecret, String redirectUri,
-                            String scope, String subjectClaim, Set<String> exchangeAudiences) {
+    /**
+     * Read a dataone-auth style client_secrets.json file.
+     * @return its entries, or an empty map if no file is configured or it can't be read
+     */
+    static Map<String, Object> loadSecretsFile(String path) {
+        if (path == null || path.trim().isEmpty()) {
+            return new HashMap<String, Object>();
+        }
+        try {
+            String json = new String(Files.readAllBytes(Paths.get(path.trim())),
+                                     StandardCharsets.UTF_8);
+            return JSONObjectUtils.parse(json);
+        } catch (IOException | ParseException e) {
+            log.error("Could not read Keycloak client secrets from " + path, e);
+            return new HashMap<String, Object>();
+        }
+    }
+
+    /**
+     * @return the Settings value for key, else the secrets file entry, else the default
+     */
+    private static String setting(String key, Map<String, Object> secrets, String secretsKey,
+                                  String defaultValue) {
+        String value = Settings.getConfiguration().getString(key);
+        if (value != null && !value.trim().isEmpty()) {
+            return value;
+        }
+        Object fromFile = secrets.get(secretsKey);
+        if (fromFile instanceof String && !((String) fromFile).trim().isEmpty()) {
+            return (String) fromFile;
+        }
+        return defaultValue;
+    }
+
+    public KeycloakProvider(String issuer, String metadataUrl, String clientId,
+                            String clientSecret, String redirectUri, String scope,
+                            String subjectClaim, Set<String> exchangeAudiences) {
         this.issuer = trimToNull(issuer);
+        this.metadataUrl = trimToNull(metadataUrl);
         this.clientId = trimToNull(clientId);
         this.clientSecret = trimToNull(clientSecret);
         this.redirectUri = trimToNull(redirectUri);
-        this.scope = scope;
-        this.subjectClaim = subjectClaim;
-        this.exchangeAudiences = exchangeAudiences;
+        this.scope = scope == null ? DEFAULT_SCOPE : scope;
+        this.subjectClaim = subjectClaim == null ? DEFAULT_SUBJECT_CLAIM : subjectClaim;
+        this.exchangeAudiences = exchangeAudiences == null
+            ? new LinkedHashSet<String>(Arrays.asList(this.clientId == null ? DEFAULT_CLIENT_ID
+                : this.clientId))
+            : exchangeAudiences;
     }
 
     /**
@@ -151,9 +219,17 @@ public class KeycloakProvider {
     public KeycloakProvider(String issuer, String clientId, String clientSecret, String redirectUri,
                             String scope, String subjectClaim, Set<String> exchangeAudiences,
                             OIDCProviderMetadata metadata, JWKSource<SecurityContext> jwkSource) {
-        this(issuer, clientId, clientSecret, redirectUri, scope, subjectClaim, exchangeAudiences);
+        this(issuer, null, clientId, clientSecret, redirectUri, scope, subjectClaim,
+             exchangeAudiences);
         this.metadata = metadata;
         this.jwkSource = jwkSource;
+    }
+
+    /**
+     * @return a provider with no issuer, so Keycloak support is off
+     */
+    public static KeycloakProvider disabled() {
+        return new KeycloakProvider(null, null, DEFAULT_CLIENT_ID, null, null, null, null, null);
     }
 
     private static String trimToNull(String value) {
@@ -161,10 +237,10 @@ public class KeycloakProvider {
     }
 
     /**
-     * @return true if Keycloak access tokens can be validated (an issuer is configured)
+     * @return true if Keycloak access tokens can be validated (an issuer or metadata URL is set)
      */
     public boolean isEnabled() {
-        return issuer != null;
+        return issuer != null || metadataUrl != null;
     }
 
     /**
@@ -174,8 +250,11 @@ public class KeycloakProvider {
         return isEnabled() && clientId != null && clientSecret != null && redirectUri != null;
     }
 
-    public String getIssuer() {
-        return issuer;
+    /**
+     * @return the configured issuer, or the issuer from the provider metadata
+     */
+    public String getIssuer() throws GeneralException, IOException {
+        return issuer != null ? issuer : getMetadata().getIssuer().getValue();
     }
 
     public ClientID getClientID() {
@@ -195,21 +274,35 @@ public class KeycloakProvider {
     }
 
     /**
-     * @return the provider's discovered metadata (endpoints), fetched on first use
+     * @return the provider's metadata (endpoints), fetched on first use from the metadata URL,
+     *         or from the issuer's .well-known/openid-configuration
      */
-    public OIDCProviderMetadata getMetadata() throws GeneralException, java.io.IOException {
+    public OIDCProviderMetadata getMetadata() throws GeneralException, IOException {
         if (metadata == null) {
             synchronized (this) {
                 if (metadata == null) {
-                    metadata = OIDCProviderMetadata.resolve(new Issuer(issuer), HTTP_TIMEOUT,
-                                                            HTTP_TIMEOUT);
+                    OIDCProviderMetadata resolved;
+                    if (metadataUrl != null) {
+                        String json = new DefaultResourceRetriever(HTTP_TIMEOUT, HTTP_TIMEOUT)
+                            .retrieveResource(URI.create(metadataUrl).toURL()).getContent();
+                        resolved = OIDCProviderMetadata.parse(json);
+                        if (issuer != null && !issuer.equals(resolved.getIssuer().getValue())) {
+                            throw new GeneralException("Issuer in " + metadataUrl + " ("
+                                + resolved.getIssuer() + ") doesn't match " + ISSUER + " "
+                                + issuer);
+                        }
+                    } else {
+                        resolved = OIDCProviderMetadata.resolve(new Issuer(issuer), HTTP_TIMEOUT,
+                                                                HTTP_TIMEOUT);
+                    }
+                    metadata = resolved;
                 }
             }
         }
         return metadata;
     }
 
-    private JWKSource<SecurityContext> getJWKSource() throws GeneralException, java.io.IOException {
+    private JWKSource<SecurityContext> getJWKSource() throws GeneralException, IOException {
         if (jwkSource == null) {
             synchronized (this) {
                 if (jwkSource == null) {
@@ -229,9 +322,9 @@ public class KeycloakProvider {
      * @return the validated claims
      */
     public IDTokenClaimsSet validateIdToken(JWT idToken, Nonce expectedNonce)
-        throws GeneralException, java.io.IOException, BadJOSEException, JOSEException {
+        throws GeneralException, IOException, BadJOSEException, JOSEException {
         IDTokenValidator validator = new IDTokenValidator(
-            new Issuer(issuer), getClientID(),
+            new Issuer(getIssuer()), getClientID(),
             new JWSVerificationKeySelector<SecurityContext>(JWSAlgorithm.RS256, getJWKSource()),
             null);
         return validator.validate(idToken, expectedNonce);
@@ -245,30 +338,52 @@ public class KeycloakProvider {
         if (!isEnabled()) {
             return false;
         }
+        String tokenIssuer;
         try {
-            return issuer.equals(JWTParser.parse(token).getJWTClaimsSet().getIssuer());
+            tokenIssuer = JWTParser.parse(token).getJWTClaimsSet().getIssuer();
         } catch (ParseException e) {
+            return false;
+        }
+        try {
+            return tokenIssuer != null && tokenIssuer.equals(getIssuer());
+        } catch (GeneralException | IOException e) {
+            log.warn("Could not load Keycloak provider metadata", e);
             return false;
         }
     }
 
     /**
      * Validate a Keycloak access token: its signature against the realm's keys, the issuer, an
-     * accepted audience, expiry, the access token type, and the presence of the subject claim.
+     * accepted audience and authorized party, expiry, the access token type, the presence of the
+     * subject claim, and its length.
      * @return the validated claims
      */
     public JWTClaimsSet validateAccessToken(String token)
-        throws ParseException, BadJOSEException, JOSEException, GeneralException,
-        java.io.IOException {
+        throws ParseException, BadJOSEException, JOSEException, GeneralException, IOException {
+        if (token.length() > MAX_TOKEN_LENGTH) {
+            throw new BadJWTException("Token exceeds maximum allowed length");
+        }
         DefaultJWTProcessor<SecurityContext> processor = new DefaultJWTProcessor<SecurityContext>();
         processor.setJWSKeySelector(
             new JWSVerificationKeySelector<SecurityContext>(JWSAlgorithm.RS256, getJWKSource()));
         processor.setJWTClaimsSetVerifier(new DefaultJWTClaimsVerifier<SecurityContext>(
             exchangeAudiences,
-            new JWTClaimsSet.Builder().issuer(issuer).claim("typ", ACCESS_TOKEN_TYPE).build(),
+            new JWTClaimsSet.Builder().issuer(getIssuer()).claim("typ", ACCESS_TOKEN_TYPE).build(),
             new HashSet<String>(Arrays.asList("exp", subjectClaim)),
             null));
-        return processor.process(token, null);
+        JWTClaimsSet claims = processor.process(token, null);
+        String azp = claims.getStringClaim("azp");
+        if (azp != null && !exchangeAudiences.contains(azp)) {
+            throw new BadJWTException("Invalid authorized party (azp): " + azp);
+        }
+        return claims;
+    }
+
+    /**
+     * @return the accepted audiences, for error messages
+     */
+    public List<String> getExchangeAudiences() {
+        return new ArrayList<String>(exchangeAudiences);
     }
 
     /**

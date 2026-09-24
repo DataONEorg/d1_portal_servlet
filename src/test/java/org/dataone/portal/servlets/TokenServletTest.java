@@ -157,7 +157,7 @@ public class TokenServletTest {
         when(request.getHeader("Authorization")).thenReturn("Bearer " + accessToken);
         when(request.getSession(false)).thenReturn(null);
 
-        tokenServlet(new KeycloakProvider(null, "d1-confidential", null, null, null, null, null))
+        tokenServlet(KeycloakProvider.disabled())
             .doGet(request, response);
 
         assertEquals("", out.getContent());

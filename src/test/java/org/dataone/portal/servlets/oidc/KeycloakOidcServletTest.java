@@ -11,6 +11,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -28,18 +30,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.oauth2.sdk.AuthorizationCode;
+import com.nimbusds.oauth2.sdk.AuthorizationCodeGrant;
+import com.nimbusds.oauth2.sdk.OAuth2Error;
+import com.nimbusds.oauth2.sdk.TokenErrorResponse;
+import com.nimbusds.oauth2.sdk.TokenRequest;
+import com.nimbusds.oauth2.sdk.TokenResponse;
 import com.nimbusds.oauth2.sdk.pkce.CodeChallenge;
 import com.nimbusds.oauth2.sdk.pkce.CodeChallengeMethod;
 import com.nimbusds.oauth2.sdk.pkce.CodeVerifier;
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import com.nimbusds.oauth2.sdk.token.RefreshToken;
+import com.nimbusds.openid.connect.sdk.OIDCTokenResponse;
 import com.nimbusds.openid.connect.sdk.token.OIDCTokens;
 
 /**
- * Tests for {@link KeycloakOidcServlet}, with a fake Keycloak realm and the token endpoint call
- * replaced by a stub.
+ * Tests for {@link KeycloakOidcServlet} (/login and /authorize), with a fake Keycloak realm and
+ * the token endpoint replaced by a stub.
  */
 public class KeycloakOidcServletTest {
 
@@ -47,12 +55,14 @@ public class KeycloakOidcServletTest {
 
     /** Uses the fake realm and answers token requests with tokens signed by its key */
     private static class StubKeycloakOidcServlet extends KeycloakOidcServlet {
+        private static final long serialVersionUID = 1L;
         final TestKeycloak keycloak;
         final KeycloakProvider provider;
-        /** claims for the ID token returned at the token endpoint; null means use the nonce */
+        /** claims for the ID token returned at the token endpoint */
         JWTClaimsSet idTokenClaims;
-        AuthorizationCode codeRequested;
-        CodeVerifier verifierSent;
+        /** if set, the token endpoint answers with this error */
+        TokenErrorResponse tokenError;
+        TokenRequest tokenRequest;
         String registered;
 
         StubKeycloakOidcServlet(TestKeycloak keycloak, KeycloakProvider provider) {
@@ -66,13 +76,19 @@ public class KeycloakOidcServletTest {
         }
 
         @Override
-        protected OIDCTokens requestTokens(KeycloakProvider provider, AuthorizationCode code,
-                                           CodeVerifier verifier) throws Exception {
-            codeRequested = code;
-            verifierSent = verifier;
-            return new OIDCTokens(keycloak.sign(idTokenClaims),
-                                  new BearerAccessToken("keycloak-access-token", 300, null),
-                                  new RefreshToken("keycloak-refresh-token"));
+        protected TokenResponse sendTokenRequest(TokenRequest request) {
+            tokenRequest = request;
+            if (tokenError != null) {
+                return tokenError;
+            }
+            try {
+                return new OIDCTokenResponse(new OIDCTokens(
+                    keycloak.sign(idTokenClaims),
+                    new BearerAccessToken("keycloak-access-token", 300, null),
+                    new RefreshToken("keycloak-refresh-token")));
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
         }
 
         @Override
@@ -84,24 +100,35 @@ public class KeycloakOidcServletTest {
     private TestKeycloak keycloak;
     private StubKeycloakOidcServlet servlet;
     private FakeHttpSession httpSession;
+    private HttpServletResponse response;
+    private StringWriter body;
 
     @BeforeEach
     public void setUp() throws Exception {
         keycloak = new TestKeycloak();
         servlet = new StubKeycloakOidcServlet(keycloak, keycloak.provider());
         httpSession = new FakeHttpSession("session-before-login");
+        response = newResponse();
     }
 
-    private HttpServletRequest startRequest(String target) {
+    private HttpServletResponse newResponse() throws Exception {
+        HttpServletResponse newResponse = mock(HttpServletResponse.class);
+        body = new StringWriter();
+        when(newResponse.getWriter()).thenReturn(new PrintWriter(body, true));
+        return newResponse;
+    }
+
+    private HttpServletRequest loginRequest(String target) {
         HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getParameter("action")).thenReturn("start");
+        when(request.getServletPath()).thenReturn(KeycloakOidcServlet.LOGIN_PATH);
         when(request.getParameter("target")).thenReturn(target);
         when(request.getSession(true)).thenReturn(httpSession);
         return request;
     }
 
-    private HttpServletRequest callbackRequest(String query) {
+    private HttpServletRequest authorizeRequest(String query) {
         HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getServletPath()).thenReturn(KeycloakOidcServlet.AUTHORIZE_PATH);
         when(request.getQueryString()).thenReturn(query);
         when(request.getSession(false)).thenReturn(httpSession);
         when(request.changeSessionId()).thenAnswer(invocation -> {
@@ -120,33 +147,45 @@ public class KeycloakOidcServletTest {
         return params;
     }
 
-    /** Run the start step and return the parameters sent to Keycloak */
-    private Map<String, String> start(String target) throws Exception {
-        HttpServletResponse response = mock(HttpServletResponse.class);
-        servlet.doGet(startRequest(target), response);
+    /** Run the login step and return the parameters sent to Keycloak */
+    private Map<String, String> login(String target) throws Exception {
+        HttpServletResponse loginResponse = mock(HttpServletResponse.class);
+        servlet.doGet(loginRequest(target), loginResponse);
         ArgumentCaptor<String> location = ArgumentCaptor.forClass(String.class);
-        verify(response).sendRedirect(location.capture());
+        verify(loginResponse).sendRedirect(location.capture());
         assertTrue(location.getValue().startsWith(TestKeycloak.AUTHORIZATION_ENDPOINT + "?"));
         return queryParams(location.getValue());
     }
 
-    @Test
-    public void testDoGet_unavailableWhenNotConfigured() throws Exception {
-        KeycloakProvider unconfigured =
-            new KeycloakProvider(null, "d1-confidential", null, null, null, null, null);
-        StubKeycloakOidcServlet unconfiguredServlet =
-            new StubKeycloakOidcServlet(keycloak, unconfigured);
-        HttpServletResponse response = mock(HttpServletResponse.class);
-
-        unconfiguredServlet.doGet(startRequest(TARGET), response);
-
-        verify(response).sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                                   "Keycloak login is not configured");
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> error() throws Exception {
+        return (Map<String, Object>) JSONObjectUtils.parse(body.toString()).get("error");
     }
 
     @Test
-    public void testStart_redirectsToKeycloakWithStateNonceAndPkce() throws Exception {
-        Map<String, String> params = start(TARGET);
+    public void testDoGet_unavailableWhenNotConfigured() throws Exception {
+        StubKeycloakOidcServlet unconfigured =
+            new StubKeycloakOidcServlet(keycloak, KeycloakProvider.disabled());
+
+        unconfigured.doGet(loginRequest(TARGET), response);
+
+        verify(response).setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+        assertEquals("OIDC login is not configured", error().get("message"));
+    }
+
+    @Test
+    public void testDoGet_unknownPathIsNotFound() throws Exception {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getServletPath()).thenReturn("/oidc");
+
+        servlet.doGet(request, response);
+
+        verify(response).sendError(HttpServletResponse.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void testLogin_redirectsToKeycloakWithStateNonceAndPkce() throws Exception {
+        Map<String, String> params = login(TARGET);
 
         assertEquals("code", params.get("response_type"));
         assertEquals(TestKeycloak.CLIENT_ID, params.get("client_id"));
@@ -164,27 +203,28 @@ public class KeycloakOidcServletTest {
     }
 
     @Test
-    public void testStart_rejectsTargetOutsideAllowlist() throws Exception {
-        HttpServletResponse response = mock(HttpServletResponse.class);
+    public void testLogin_rejectsTargetOutsideAllowlist() throws Exception {
+        servlet.doGet(loginRequest("https://evil.example/"), response);
 
-        servlet.doGet(startRequest("https://evil.example/"), response);
-
-        verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid target");
+        verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        assertEquals("Invalid target", error().get("details"));
         verify(response, never()).sendRedirect(anyString());
     }
 
     @Test
-    public void testCallback_storesLoginAndRedirectsToTarget() throws Exception {
-        Map<String, String> params = start(TARGET);
+    public void testAuthorize_withTargetStoresLoginAndRedirects() throws Exception {
+        Map<String, String> params = login(TARGET);
         String verifier = (String) httpSession.getAttribute(PortalSession.PKCE_VERIFIER);
         servlet.idTokenClaims = keycloak.idTokenClaims(params.get("nonce")).build();
-        HttpServletResponse response = mock(HttpServletResponse.class);
 
-        servlet.doGet(callbackRequest("code=the-code&state=" + params.get("state")), response);
+        servlet.doGet(authorizeRequest("code=the-code&state=" + params.get("state")), response);
 
         verify(response).sendRedirect(TARGET);
-        assertEquals("the-code", servlet.codeRequested.getValue());
-        assertEquals(verifier, servlet.verifierSent.getValue());
+        AuthorizationCodeGrant grant =
+            (AuthorizationCodeGrant) servlet.tokenRequest.getAuthorizationGrant();
+        assertEquals("the-code", grant.getAuthorizationCode().getValue());
+        assertEquals(verifier, grant.getCodeVerifier().getValue());
+        assertEquals(URI.create(TestKeycloak.REDIRECT_URI), grant.getRedirectionURI());
         assertEquals("session-after-login", httpSession.getId());
         assertEquals(PortalSession.SOURCE_KEYCLOAK,
                      httpSession.getAttribute(PortalSession.AUTH_SOURCE));
@@ -202,51 +242,88 @@ public class KeycloakOidcServletTest {
     }
 
     @Test
-    public void testCallback_rejectsMismatchedState() throws Exception {
-        start(TARGET);
-        HttpServletResponse response = mock(HttpServletResponse.class);
+    @SuppressWarnings("unchecked")
+    public void testAuthorize_withoutTargetReturnsDataoneAuthTokenPayload() throws Exception {
+        Map<String, String> params = login(null);
+        servlet.idTokenClaims = keycloak.idTokenClaims(params.get("nonce")).build();
 
-        servlet.doGet(callbackRequest("code=the-code&state=forged"), response);
+        servlet.doGet(authorizeRequest("code=the-code&state=" + params.get("state")), response);
 
-        verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST,
-                                   "Invalid or expired login request");
-        assertNull(servlet.codeRequested, "the code must not be exchanged");
+        verify(response).setStatus(HttpServletResponse.SC_OK);
+        Map<String, Object> payload = JSONObjectUtils.parse(body.toString());
+        assertEquals("Success", payload.get("message"));
+        Map<String, Object> token = (Map<String, Object>) payload.get("token");
+        assertEquals("keycloak-access-token", token.get("access_token"));
+        assertEquals("keycloak-refresh-token", token.get("refresh_token"));
+        assertEquals(TestKeycloak.ORCID, httpSession.getAttribute(PortalSession.USER_ID));
     }
 
     @Test
-    public void testCallback_rejectsWrongNonce() throws Exception {
-        Map<String, String> params = start(TARGET);
+    public void testAuthorize_rejectsMismatchedState() throws Exception {
+        login(TARGET);
+
+        servlet.doGet(authorizeRequest("code=the-code&state=forged"), response);
+
+        verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        assertEquals("Invalid or expired login request", error().get("details"));
+        assertNull(servlet.tokenRequest, "the code must not be exchanged");
+    }
+
+    @Test
+    public void testAuthorize_wrongNonceWithTargetRedirectsWithError() throws Exception {
+        Map<String, String> params = login(TARGET);
         servlet.idTokenClaims = keycloak.idTokenClaims("some-other-nonce").build();
-        HttpServletResponse response = mock(HttpServletResponse.class);
 
-        servlet.doGet(callbackRequest("code=the-code&state=" + params.get("state")), response);
-
-        verify(response).sendRedirect(TARGET + "?error=login_failed");
-        assertNull(httpSession.getAttribute(PortalSession.ACCESS_TOKEN));
-    }
-
-    @Test
-    public void testCallback_rejectsIdTokenWithoutSubjectClaim() throws Exception {
-        Map<String, String> params = start(TARGET);
-        servlet.idTokenClaims = keycloak.idTokenClaims(params.get("nonce"))
-            .claim("preferred_username", null).build();
-        HttpServletResponse response = mock(HttpServletResponse.class);
-
-        servlet.doGet(callbackRequest("code=the-code&state=" + params.get("state")), response);
+        servlet.doGet(authorizeRequest("code=the-code&state=" + params.get("state")), response);
 
         verify(response).sendRedirect(TARGET + "?error=login_failed");
         assertNull(httpSession.getAttribute(PortalSession.ACCESS_TOKEN));
     }
 
     @Test
-    public void testCallback_keycloakErrorRedirectsToTargetWithError() throws Exception {
-        Map<String, String> params = start(TARGET);
-        HttpServletResponse response = mock(HttpServletResponse.class);
+    public void testAuthorize_wrongNonceWithoutTargetIs401() throws Exception {
+        Map<String, String> params = login(null);
+        servlet.idTokenClaims = keycloak.idTokenClaims("some-other-nonce").build();
 
-        servlet.doGet(callbackRequest("error=access_denied&state=" + params.get("state")),
+        servlet.doGet(authorizeRequest("code=the-code&state=" + params.get("state")), response);
+
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        assertEquals("Token validation failed", error().get("message"));
+        assertNull(httpSession.getAttribute(PortalSession.ACCESS_TOKEN));
+    }
+
+    @Test
+    public void testAuthorize_rejectsIdTokenWithoutSubjectClaim() throws Exception {
+        Map<String, String> params = login(TARGET);
+        servlet.idTokenClaims =
+            keycloak.idTokenClaims(params.get("nonce")).claim("orcid", null).build();
+
+        servlet.doGet(authorizeRequest("code=the-code&state=" + params.get("state")), response);
+
+        verify(response).sendRedirect(TARGET + "?error=login_failed");
+        assertNull(httpSession.getAttribute(PortalSession.ACCESS_TOKEN));
+    }
+
+    @Test
+    public void testAuthorize_keycloakErrorRedirectsWithError() throws Exception {
+        Map<String, String> params = login(TARGET);
+
+        servlet.doGet(authorizeRequest("error=access_denied&state=" + params.get("state")),
                       response);
 
         verify(response).sendRedirect(TARGET + "?error=login_failed");
-        assertNull(servlet.codeRequested);
+        assertNull(servlet.tokenRequest);
+    }
+
+    @Test
+    public void testAuthorize_rejectedCodeWithoutTargetIs401() throws Exception {
+        Map<String, String> params = login(null);
+        servlet.tokenError = new TokenErrorResponse(OAuth2Error.INVALID_GRANT);
+
+        servlet.doGet(authorizeRequest("code=the-code&state=" + params.get("state")), response);
+
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        assertEquals("Authorization failed", error().get("message"));
+        assertNull(httpSession.getAttribute(PortalSession.ACCESS_TOKEN));
     }
 }

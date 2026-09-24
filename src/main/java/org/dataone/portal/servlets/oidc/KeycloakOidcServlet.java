@@ -6,7 +6,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -14,6 +13,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.configuration.Settings;
 import org.dataone.portal.oidc.KeycloakProvider;
+import org.dataone.portal.oidc.OidcException;
+import org.dataone.portal.oidc.OidcResponses;
 import org.dataone.portal.servlets.AccountRegistration;
 import org.dataone.portal.servlets.RedirectTargets;
 import org.dataone.portal.session.PortalSession;
@@ -23,50 +24,47 @@ import com.nimbusds.oauth2.sdk.AuthorizationCodeGrant;
 import com.nimbusds.oauth2.sdk.ErrorObject;
 import com.nimbusds.oauth2.sdk.ResponseType;
 import com.nimbusds.oauth2.sdk.Scope;
-import com.nimbusds.oauth2.sdk.TokenRequest;
-import com.nimbusds.oauth2.sdk.TokenResponse;
-import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic;
-import com.nimbusds.oauth2.sdk.auth.Secret;
 import com.nimbusds.oauth2.sdk.id.State;
 import com.nimbusds.oauth2.sdk.pkce.CodeChallengeMethod;
 import com.nimbusds.oauth2.sdk.pkce.CodeVerifier;
 import com.nimbusds.oauth2.sdk.token.RefreshToken;
+import com.nimbusds.oauth2.sdk.token.Tokens;
 import com.nimbusds.openid.connect.sdk.AuthenticationErrorResponse;
 import com.nimbusds.openid.connect.sdk.AuthenticationRequest;
 import com.nimbusds.openid.connect.sdk.AuthenticationResponse;
 import com.nimbusds.openid.connect.sdk.AuthenticationResponseParser;
 import com.nimbusds.openid.connect.sdk.AuthenticationSuccessResponse;
 import com.nimbusds.openid.connect.sdk.Nonce;
-import com.nimbusds.openid.connect.sdk.OIDCTokenResponse;
-import com.nimbusds.openid.connect.sdk.OIDCTokenResponseParser;
 import com.nimbusds.openid.connect.sdk.claims.IDTokenClaimsSet;
 import com.nimbusds.openid.connect.sdk.token.OIDCTokens;
 
 /**
  * Login through Keycloak (OpenID Connect authorization code flow with PKCE), alongside the direct
- * ORCID login in OrcidOAuthServlet. A successful login stores the same session attributes
- * (accessToken, userId, name) that TokenServlet uses to issue DataONE JWTs, plus the Keycloak
- * refresh and ID tokens.
+ * ORCID login in OrcidOAuthServlet. The endpoint names match the Python dataone-auth package.
  * <ul>
- * <li>{@code GET /oidc?action=start&target=<url>} sends the browser to Keycloak.</li>
- * <li>{@code GET /oidc?code=...&state=...} is the callback; its URL is configured with
+ * <li>{@code GET /login?target=<url>} sends the browser to Keycloak; {@code target} is
+ * optional.</li>
+ * <li>{@code GET /authorize?code=...&state=...} is the callback. Its URL is configured with
  * {@code keycloak.redirect.uri} and registered on the Keycloak client for each deployment.</li>
  * </ul>
+ * A successful login stores the same session attributes (accessToken, userId, name) that
+ * TokenServlet uses to issue DataONE JWTs, plus the Keycloak refresh and ID tokens. If the login
+ * started with a {@code target}, the browser is then redirected there; otherwise the response is
+ * the dataone-auth token payload,
+ * {@code {"message": "Success", "token": {"access_token": ..., "refresh_token": ...}}}.
  * See {@link KeycloakProvider} for the settings.
  */
-public class KeycloakOidcServlet extends HttpServlet {
+public class KeycloakOidcServlet extends KeycloakServlet {
+
+    private static final long serialVersionUID = 1L;
 
     private static Log log = LogFactory.getLog(KeycloakOidcServlet.class);
 
     /** Register logged-in users with the CN if they aren't registered yet (default true) */
     public static final String REGISTER_ACCOUNTS = "keycloak.register.accounts";
 
-    /**
-     * @return the Keycloak provider; tests override this
-     */
-    protected KeycloakProvider getProvider() {
-        return KeycloakProvider.getInstance();
-    }
+    public static final String LOGIN_PATH = "/login";
+    public static final String AUTHORIZE_PATH = "/authorize";
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -74,43 +72,34 @@ public class KeycloakOidcServlet extends HttpServlet {
 
         KeycloakProvider provider = getProvider();
         if (!provider.isLoginConfigured()) {
-            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                               "Keycloak login is not configured");
+            OidcResponses.writeError(response, HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+                                     OidcResponses.NOT_CONFIGURED, null);
             return;
         }
 
-        String action = request.getParameter("action");
-        try {
-            if ("start".equals(action)) {
-                handleStart(provider, request, response);
-            } else if (action == null) {
-                handleCallback(provider, request, response);
-            } else {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action");
+        String path = request.getServletPath();
+        if (LOGIN_PATH.equals(path)) {
+            try {
+                handleLogin(provider, request, response);
+            } catch (Exception e) {
+                log.error("Could not start Keycloak login", e);
+                writeError(response, toOidcException(e));
             }
-        } catch (Exception e) {
-            log.error("Keycloak login failed (action=" + action + ")", e);
-            if (response.isCommitted()) {
-                return;
-            }
-            // send the browser back to where it started, if we know where that was
-            PortalSession session = PortalSession.find(request);
-            String target = session == null ? null : session.getTarget();
-            if (action == null && RedirectTargets.isAllowed(target)) {
-                response.sendRedirect(withParameter(target, "error", "login_failed"));
-            } else {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Login failed");
-            }
+        } else if (AUTHORIZE_PATH.equals(path)) {
+            handleAuthorize(provider, request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
-    private void handleStart(KeycloakProvider provider, HttpServletRequest request,
+    private void handleLogin(KeycloakProvider provider, HttpServletRequest request,
                              HttpServletResponse response) throws Exception {
 
         // where should we end up afterward?
         String target = request.getParameter("target");
         if (target != null && !RedirectTargets.isAllowed(target)) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid target");
+            OidcResponses.writeError(response, HttpServletResponse.SC_BAD_REQUEST,
+                                     OidcResponses.MISSING_PARAMETER, "Invalid target");
             return;
         }
 
@@ -136,36 +125,87 @@ public class KeycloakOidcServlet extends HttpServlet {
         response.sendRedirect(authRequest.toURI().toString());
     }
 
-    private void handleCallback(KeycloakProvider provider, HttpServletRequest request,
-                                HttpServletResponse response) throws Exception {
+    private void handleAuthorize(KeycloakProvider provider, HttpServletRequest request,
+                                 HttpServletResponse response) throws IOException {
 
         // the callback must come back to the session that started the login, with its state
         PortalSession session = PortalSession.find(request);
         String query = request.getQueryString();
-        AuthenticationResponse authResponse = AuthenticationResponseParser.parse(
-            URI.create(provider.getRedirectURI() + (query == null ? "" : "?" + query)));
+        AuthenticationResponse authResponse;
+        try {
+            authResponse = AuthenticationResponseParser.parse(
+                URI.create(provider.getRedirectURI() + (query == null ? "" : "?" + query)));
+        } catch (com.nimbusds.oauth2.sdk.ParseException e) {
+            OidcResponses.writeError(response, HttpServletResponse.SC_BAD_REQUEST,
+                                     OidcResponses.MISSING_PARAMETER, e.getMessage());
+            return;
+        }
         String state = authResponse.getState() == null ? null : authResponse.getState().getValue();
         if (session == null || !session.consumeOAuthState(state)) {
             log.warn("Rejecting Keycloak callback with no session or a mismatched state");
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                               "Invalid or expired login request");
+            OidcResponses.writeError(response, HttpServletResponse.SC_BAD_REQUEST,
+                                     OidcResponses.MISSING_PARAMETER,
+                                     "Invalid or expired login request");
             return;
         }
         String nonce = session.getNonce();
         String verifier = session.getPkceVerifier();
         session.clearLoginSecrets();
+        String target = session.getTarget();
 
+        Tokens tokens;
+        try {
+            tokens = completeLogin(provider, request, session, authResponse, nonce, verifier);
+        } catch (Exception e) {
+            OidcException error = toOidcException(e);
+            log.error("Keycloak login failed", e);
+            if (target != null) {
+                // send the browser back to where it started (checked in handleLogin)
+                response.sendRedirect(withParameter(target, "error", "login_failed"));
+            } else {
+                writeError(response, error);
+            }
+            return;
+        }
+
+        if (target != null) {
+            response.sendRedirect(target);
+        } else {
+            RefreshToken refreshToken = tokens.getRefreshToken();
+            OidcResponses.writeTokens(response, "Success", tokens.getAccessToken().getValue(),
+                                      refreshToken == null ? null : refreshToken.getValue());
+        }
+    }
+
+    /**
+     * Exchange the code, check the ID token, and record the login in the session.
+     * @return the tokens from Keycloak
+     */
+    private Tokens completeLogin(KeycloakProvider provider, HttpServletRequest request,
+                                 PortalSession session, AuthenticationResponse authResponse,
+                                 String nonce, String verifier) throws Exception {
         if (!authResponse.indicatesSuccess()) {
             ErrorObject error = ((AuthenticationErrorResponse) authResponse).getErrorObject();
-            throw new IllegalStateException("Keycloak returned an error: " + error.getCode()
-                + " " + error.getDescription());
+            throw new OidcException(HttpServletResponse.SC_UNAUTHORIZED,
+                                    OidcResponses.AUTHORIZATION_FAILED,
+                                    error.getCode() + (error.getDescription() == null ? ""
+                                        : ": " + error.getDescription()));
         }
         AuthorizationCode code = ((AuthenticationSuccessResponse) authResponse)
             .getAuthorizationCode();
 
         // exchange the code for tokens, and check the ID token
-        OIDCTokens tokens = requestTokens(provider, code, new CodeVerifier(verifier));
-        IDTokenClaimsSet idClaims = provider.validateIdToken(tokens.getIDToken(),
+        Tokens tokens = requestTokens(
+            provider, new AuthorizationCodeGrant(code, provider.getRedirectURI(),
+                                                 new CodeVerifier(verifier)),
+            null, OidcResponses.AUTHORIZATION_FAILED);
+        if (!(tokens instanceof OIDCTokens) || ((OIDCTokens) tokens).getIDToken() == null) {
+            throw new OidcException(HttpServletResponse.SC_UNAUTHORIZED,
+                                    OidcResponses.AUTHORIZATION_FAILED,
+                                    "Keycloak did not return an ID token");
+        }
+        OIDCTokens oidcTokens = (OIDCTokens) tokens;
+        IDTokenClaimsSet idClaims = provider.validateIdToken(oidcTokens.getIDToken(),
                                                              new Nonce(nonce));
         String userId = provider.getSubject(idClaims.toJWTClaimsSet());
         String name = KeycloakProvider.getName(idClaims.toJWTClaimsSet());
@@ -179,41 +219,13 @@ public class KeycloakOidcServlet extends HttpServlet {
             : tokens.getAccessToken().getScope().toString());
         RefreshToken refreshToken = tokens.getRefreshToken();
         session.setRefreshToken(refreshToken == null ? null : refreshToken.getValue());
-        session.setIdToken(tokens.getIDTokenString());
+        session.setIdToken(oidcTokens.getIDTokenString());
         session.setUserId(userId);
         session.setName(name);
 
         registerAccount(userId, idClaims.getStringClaim("given_name"),
                         idClaims.getStringClaim("family_name"));
-
-        String target = session.getTarget();
-        if (target != null) {
-            // redirect to target (checked in handleStart)
-            response.sendRedirect(target);
-        } else {
-            response.setContentType("text/plain; charset=UTF-8");
-            response.getWriter().println("Login complete.");
-        }
-    }
-
-    /**
-     * Exchange an authorization code for tokens at Keycloak's token endpoint.
-     */
-    protected OIDCTokens requestTokens(KeycloakProvider provider, AuthorizationCode code,
-                                       CodeVerifier verifier) throws Exception {
-        TokenRequest tokenRequest = new TokenRequest.Builder(
-            provider.getMetadata().getTokenEndpointURI(),
-            new ClientSecretBasic(provider.getClientID(), new Secret(provider.getClientSecret())),
-            new AuthorizationCodeGrant(code, provider.getRedirectURI(), verifier))
-            .build();
-        TokenResponse tokenResponse = OIDCTokenResponseParser.parse(
-            tokenRequest.toHTTPRequest().send());
-        if (!tokenResponse.indicatesSuccess()) {
-            ErrorObject error = tokenResponse.toErrorResponse().getErrorObject();
-            throw new IllegalStateException("Keycloak token request failed: " + error.getCode()
-                + " " + error.getDescription());
-        }
-        return ((OIDCTokenResponse) tokenResponse.toSuccessResponse()).getOIDCTokens();
+        return tokens;
     }
 
     /**

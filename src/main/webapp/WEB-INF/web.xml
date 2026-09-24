@@ -35,14 +35,26 @@
 		<url-pattern>/oauth</url-pattern>
 	</servlet-mapping>
 	
-	<!--  Keycloak OpenID Connect login servlet -->
+	<!--  Keycloak OpenID Connect login (/login) and callback (/authorize), named as in
+	      the Python dataone-auth package -->
 	<servlet>
 		<servlet-name>oidcServlet</servlet-name>
 		<servlet-class>org.dataone.portal.servlets.oidc.KeycloakOidcServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>oidcServlet</servlet-name>
-		<url-pattern>/oidc</url-pattern>
+		<url-pattern>/login</url-pattern>
+		<url-pattern>/authorize</url-pattern>
+	</servlet-mapping>
+	
+	<!--  Keycloak token refresh -->
+	<servlet>
+		<servlet-name>refreshServlet</servlet-name>
+		<servlet-class>org.dataone.portal.servlets.oidc.KeycloakRefreshServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>refreshServlet</servlet-name>
+		<url-pattern>/refresh</url-pattern>
 	</servlet-mapping>
 	
 	<!-- token endpoint -->
