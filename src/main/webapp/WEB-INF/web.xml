@@ -47,16 +47,6 @@
 		<url-pattern>/logout</url-pattern>
 	</servlet-mapping>
     
-    <!--  AnnotatorStore proxy to MN storage -->
-	<servlet>
-		<servlet-name>annotatorStoreRestServlet</servlet-name>
-		<servlet-class>org.dataone.annotator.store.AnnotatorRestServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>annotatorStoreRestServlet</servlet-name>
-		<url-pattern>/annotator/*</url-pattern>
-	</servlet-mapping>
-    
 	<!-- NOTE: can override the CN URL for DataONE -->
 	<context-param>
 		<param-name>D1Client.CN_URL</param-name>
