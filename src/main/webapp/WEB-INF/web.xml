@@ -27,16 +27,6 @@
 		<url-pattern>/oauth</url-pattern>
 	</servlet-mapping>
 	
-	<!--  LDAP Auth servlet -->
-	<servlet>
-		<servlet-name>ldapServlet</servlet-name>
-		<servlet-class>org.dataone.portal.servlets.ldap.LdapServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>ldapServlet</servlet-name>
-		<url-pattern>/ldap</url-pattern>
-	</servlet-mapping>
-	
 	<!-- token endpoint -->
 	<servlet>
 		<servlet-name>tokenServlet</servlet-name>
