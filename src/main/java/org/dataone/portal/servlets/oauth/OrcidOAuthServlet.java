@@ -23,6 +23,8 @@
 package org.dataone.portal.servlets.oauth;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -44,6 +46,7 @@ import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.message.types.ResponseType;
 import org.dataone.client.v2.itk.D1Client;
 import org.dataone.configuration.Settings;
+import org.dataone.portal.servlets.RedirectTargets;
 import org.dataone.portal.session.PortalSession;
 import org.dataone.service.exceptions.BaseException;
 import org.dataone.service.exceptions.NotFound;
@@ -92,8 +95,8 @@ public class OrcidOAuthServlet extends HttpServlet {
 			IOException {
 		
 		// handle the requests
+		String action = request.getParameter("action");
 		try {
-			String action = request.getParameter("action");
 			if (action != null) {
 				if (action.equals("start")) {
 					this.handleStart(request, response);
@@ -104,7 +107,18 @@ public class OrcidOAuthServlet extends HttpServlet {
 			}
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("ORCID login failed (action=" + action + ")", e);
+			if (response.isCommitted()) {
+				return;
+			}
+			// send the browser back to where it started, if we know where that was
+			PortalSession session = PortalSession.find(request);
+			String target = session == null ? null : session.getTarget();
+			if (action == null && RedirectTargets.isAllowed(target)) {
+				response.sendRedirect(withParameter(target, "error", "login_failed"));
+			} else {
+				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Login failed");
+			}
 		}
 
 	}
@@ -114,9 +128,16 @@ public class OrcidOAuthServlet extends HttpServlet {
 		// we just come back here
 		StringBuffer redirectUrl = HttpUtils.getRequestURL(request);
 		
-		// remember for the callback where we should end up afterward
+		// where should we end up afterward?
+		String target = request.getParameter("target");
+		if (target != null && !RedirectTargets.isAllowed(target)) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid target");
+			return;
+		}
+		
+		// remember for the callback
 		PortalSession session = PortalSession.create(request);
-		session.setTarget(request.getParameter("target"));
+		session.setTarget(target);
 		
 		OAuthClientRequest oauthRequest = OAuthClientRequest
 				   .authorizationLocation(AUTHORIZATION_LOCATION)
@@ -167,13 +188,21 @@ public class OrcidOAuthServlet extends HttpServlet {
 		
 		String target = session.getTarget();
 		if (target != null) {
-			// redirect to target
+			// redirect to target (checked in handleStart)
 			response.sendRedirect(target);
 		} else {
-			// redirect to token context base?
-			response.sendRedirect(this.getServletContext().getResource("/").toString());
+			response.setContentType("text/plain; charset=UTF-8");
+			response.getWriter().println("Login complete.");
 		}
 
+	}
+	
+	/**
+	 * Add a query parameter to a URL
+	 */
+	static String withParameter(String url, String name, String value) {
+		String separator = url.contains("?") ? "&" : "?";
+		return url + separator + name + "=" + URLEncoder.encode(value, StandardCharsets.UTF_8);
 	}
 	
 	/**

@@ -34,6 +34,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.dataone.client.auth.CertificateManager;
 import org.dataone.portal.PortalCertificateManager;
 import org.dataone.portal.TokenGenerator;
@@ -47,6 +49,8 @@ import com.nimbusds.jose.JOSEException;
  */
 public class TokenServlet extends HttpServlet {
 	
+	private static Log log = LogFactory.getLog(TokenServlet.class);
+	
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,
 			IOException {
@@ -56,13 +60,13 @@ public class TokenServlet extends HttpServlet {
 		try {
 			token = this.getCertificateToken(request, response);	
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.warn("Could not create a token from a portal certificate", e);
 		}
 		if (token == null) {
 			try {
 				token = this.getSessionToken(request, response);	
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error("Could not create a token for the session", e);
 			}
 		}
 		if (token == null) {
@@ -100,7 +104,6 @@ public class TokenServlet extends HttpServlet {
 
     		}
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new ServletException(e);
 		}
     	

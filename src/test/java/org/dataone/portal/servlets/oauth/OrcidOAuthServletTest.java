@@ -12,6 +12,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -42,10 +44,14 @@ public class OrcidOAuthServletTest {
     private static class StubOrcidOAuthServlet extends OrcidOAuthServlet {
         String codeRequested;
         String registeredOrcid;
+        boolean failTokenRequest = false;
 
         @Override
         protected OrcidToken requestAccessToken(String code) {
             codeRequested = code;
+            if (failTokenRequest) {
+                throw new IllegalStateException("simulated ORCID token endpoint failure");
+            }
             OrcidToken token = new OrcidToken();
             token.accessToken = "orcid-access-token";
             token.expiresIn = 3600L;
@@ -74,9 +80,13 @@ public class OrcidOAuthServletTest {
     }
 
     private HttpServletRequest startRequest() {
+        return startRequest(TARGET);
+    }
+
+    private HttpServletRequest startRequest(String target) {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getParameter("action")).thenReturn("start");
-        when(request.getParameter("target")).thenReturn(TARGET);
+        when(request.getParameter("target")).thenReturn(target);
         when(request.getScheme()).thenReturn("https");
         when(request.getServerName()).thenReturn("cn.example.org");
         when(request.getServerPort()).thenReturn(443);
@@ -177,5 +187,50 @@ public class OrcidOAuthServletTest {
         verify(response).sendError(anyInt(), anyString());
         verify(response, never()).sendRedirect(anyString());
         assertNull(servlet.codeRequested);
+    }
+
+    @Test
+    public void testStart_rejectsTargetOutsideAllowlist() throws Exception {
+        servlet.doGet(startRequest("https://evil.example/"), response);
+
+        verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid target");
+        verify(response, never()).sendRedirect(anyString());
+        assertNull(httpSession.getAttribute(PortalSession.OAUTH_STATE));
+    }
+
+    @Test
+    public void testCallback_withoutTargetShowsMessage() throws Exception {
+        servlet.doGet(startRequest(null), response);
+        ArgumentCaptor<String> location = ArgumentCaptor.forClass(String.class);
+        verify(response).sendRedirect(location.capture());
+        String state = queryParams(location.getValue()).get("state");
+        HttpServletResponse callbackResponse = mock(HttpServletResponse.class);
+        StringWriter body = new StringWriter();
+        when(callbackResponse.getWriter()).thenReturn(new PrintWriter(body));
+
+        servlet.doGet(callbackRequest(state), callbackResponse);
+
+        verify(callbackResponse, never()).sendRedirect(anyString());
+        assertTrue(body.toString().contains("Login complete"));
+        assertEquals("orcid-access-token", httpSession.getAttribute(PortalSession.ACCESS_TOKEN));
+    }
+
+    @Test
+    public void testCallback_failureRedirectsToTargetWithError() throws Exception {
+        String state = start();
+        servlet.failTokenRequest = true;
+        HttpServletResponse callbackResponse = mock(HttpServletResponse.class);
+
+        servlet.doGet(callbackRequest(state), callbackResponse);
+
+        verify(callbackResponse).sendRedirect(TARGET + "?error=login_failed");
+        assertNull(httpSession.getAttribute(PortalSession.ACCESS_TOKEN));
+    }
+
+    @Test
+    public void testWithParameter() {
+        assertEquals("https://a.org/?error=x", OrcidOAuthServlet.withParameter("https://a.org/", "error", "x"));
+        assertEquals("https://a.org/?p=1&error=a+b",
+                     OrcidOAuthServlet.withParameter("https://a.org/?p=1", "error", "a b"));
     }
 }

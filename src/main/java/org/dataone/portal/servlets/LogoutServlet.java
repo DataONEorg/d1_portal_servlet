@@ -54,7 +54,14 @@ public class LogoutServlet extends HttpServlet {
 		PortalCertificateManager.getInstance().removeCookie(response);
 		
 		// return to where they came
-		response.sendRedirect(target);
+		if (target == null) {
+			response.setContentType("text/plain; charset=UTF-8");
+			response.getWriter().println("Logged out.");
+		} else if (RedirectTargets.isAllowed(target)) {
+			response.sendRedirect(target);
+		} else {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid target");
+		}
 
 	}
 	
