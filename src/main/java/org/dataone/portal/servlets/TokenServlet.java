@@ -36,6 +36,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.portal.TokenGenerator;
 import org.dataone.portal.oidc.KeycloakProvider;
+import org.dataone.portal.oidc.OidcResponses;
 import org.dataone.portal.session.PortalSession;
 
 import com.nimbusds.jose.JOSEException;
@@ -55,6 +56,11 @@ public class TokenServlet extends HttpServlet {
 		// a Keycloak access token in the Authorization header is exchanged for a DataONE JWT
 		String bearer = getBearerToken(request);
 		KeycloakProvider provider = getProvider();
+		if (bearer != null && bearer.length() > KeycloakProvider.MAX_TOKEN_LENGTH) {
+			rejectToken(response, OidcResponses.INVALID_TOKEN_OR_HEADER,
+					"Token exceeds maximum allowed length");
+			return;
+		}
 		if (bearer != null && provider.isIssuedBy(bearer)) {
 			exchangeAccessToken(provider, bearer, response);
 			return;
@@ -110,12 +116,20 @@ public class TokenServlet extends HttpServlet {
 					KeycloakProvider.getName(claims));
 		} catch (Exception e) {
 			log.info("Rejecting Keycloak access token: " + e.getMessage());
-			response.setHeader("WWW-Authenticate", "Bearer error=\"invalid_token\"");
-			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			rejectToken(response, OidcResponses.TOKEN_VALIDATION_FAILED, e.getMessage());
 			return;
 		}
 		ServletOutputStream out = response.getOutputStream();
 		IOUtils.write(jwt, out);
+	}
+	
+	/**
+	 * Answer 401 with a dataone-auth style JSON error body.
+	 */
+	private static void rejectToken(HttpServletResponse response, String message, String details)
+			throws IOException {
+		response.setHeader("WWW-Authenticate", "Bearer error=\"invalid_token\"");
+		OidcResponses.writeError(response, HttpServletResponse.SC_UNAUTHORIZED, message, details);
 	}
 	
 	private String getSessionToken(HttpServletRequest request, HttpServletResponse response) throws IOException, JOSEException, ParseException {

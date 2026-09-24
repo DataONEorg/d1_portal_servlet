@@ -2,11 +2,14 @@ package org.dataone.portal.servlets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +35,7 @@ public class TokenServletTest {
     private HttpServletRequest request;
     private HttpServletResponse response;
     private ByteArrayServletOutputStream out;
+    private StringWriter body;
     private TokenServlet servlet;
 
     @BeforeEach
@@ -40,6 +44,8 @@ public class TokenServletTest {
         out = new ByteArrayServletOutputStream();
         response = mock(HttpServletResponse.class);
         when(response.getOutputStream()).thenReturn(out);
+        body = new StringWriter();
+        when(response.getWriter()).thenReturn(new PrintWriter(body));
         servlet = new TokenServlet();
     }
 
@@ -118,6 +124,8 @@ public class TokenServletTest {
         verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         verify(response).setHeader("WWW-Authenticate", "Bearer error=\"invalid_token\"");
         assertEquals("", out.getContent());
+        assertTrue(body.toString().startsWith("{\"error\":{\"message\":\"Token validation failed\""),
+                   body.toString());
     }
 
     @Test
@@ -162,5 +170,16 @@ public class TokenServletTest {
 
         assertEquals("", out.getContent());
         verify(response, never()).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    }
+
+    @Test
+    public void testDoGet_rejectsOverlongBearerToken() throws Exception {
+        when(request.getHeader("Authorization"))
+            .thenReturn("Bearer " + "a".repeat(KeycloakProvider.MAX_TOKEN_LENGTH + 1));
+
+        servlet.doGet(request, response);
+
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        assertTrue(body.toString().contains("Token exceeds maximum allowed length"));
     }
 }
