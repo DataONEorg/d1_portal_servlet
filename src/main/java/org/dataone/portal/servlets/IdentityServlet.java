@@ -60,49 +60,7 @@ public class IdentityServlet extends HttpServlet {
 	
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		
-		// augment the properties with configured portal properties file
-		String propertiesFile = config.getServletContext().getInitParameter("portal.properties.file");
-		if (propertiesFile != null) {
-			try {
-				Settings.augmentConfiguration(propertiesFile);
-			} catch (ConfigurationException e) {
-				// report the exception
-				throw new ServletException(e);
-			}
-		}
-		
-		// these will override values specified in the properties file above
-		// set the CN URL based on the context param
-		String cnURL = config.getServletContext().getInitParameter("D1Client.CN_URL");
-		if (cnURL != null) {
-			Settings.getConfiguration().setProperty("D1Client.CN_URL", cnURL);
-		}
-		// point to the correct client config file
-		String configFile = config.getServletContext().getInitParameter("oa4mp:client.config.file");
-		if (configFile != null) {
-			PortalCertificateManager.getInstance().setConfigFile(configFile);
-		}
-		
-		// point to the hazelcast config
-		String hzConfig = config.getServletContext().getInitParameter("hazelcast.config");
-		if (hzConfig != null) {
-			System.setProperty("hazelcast.config", hzConfig);
-			//Settings.getConfiguration().setProperty("hazelcast.config", hzConfig);
-		}
-		
-	}
-	
-	@Override
-	public void destroy() {
-		super.destroy();
-		// close the log handlers for uiuc
-		try {
-			PortalCertificateManager.getInstance().closeLoggers();
-		} catch (Exception e) {
-			// all we can do is complain
-			log.error("Could not shutdown the UIUC loggers", e);
-		}
+		// configuration is loaded by org.dataone.portal.PortalConfigListener
 	}
 	
     public void doGet(HttpServletRequest request, HttpServletResponse response)

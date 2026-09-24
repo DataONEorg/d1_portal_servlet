@@ -6,6 +6,11 @@
          version="2.5">
 
     <display-name>MyProxy Portal</display-name>
+
+    <!-- load portal.properties into Settings before any servlet starts -->
+    <listener>
+        <listener-class>org.dataone.portal.PortalConfigListener</listener-class>
+    </listener>
     
     <!-- ensure session lasts as long as a token -->
     <session-config>

@@ -60,17 +60,6 @@ public class LdapServlet extends HttpServlet {
 	
 	public void init(ServletConfig config) throws ServletException {
 		
-		// augment the properties with configured portal properties file
-		String propertiesFile = config.getServletContext().getInitParameter("portal.properties.file");
-		if (propertiesFile != null) {
-			try {
-				Settings.augmentConfiguration(propertiesFile);
-			} catch (ConfigurationException e) {
-				// report the exception
-				throw new ServletException(e);
-			}
-		}
-		
 		// initialize the auth ldap instance
 		try {
 			auth = new AuthLdap();
