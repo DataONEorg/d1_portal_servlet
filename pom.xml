@@ -11,7 +11,8 @@
         <maven.compiler.release>25</maven.compiler.release>
         <hazelcast.version>2.4.1</hazelcast.version>
         <d1_portal.version>2.5.0-SNAPSHOT</d1_portal.version>
-        <d1_annotator_version>0.1-SNAPSHOT</d1_annotator_version>
+        <junit.version>6.1.3</junit.version>
+        <mockito.version>5.24.0</mockito.version>
     </properties>
     <build>
         <plugins>
@@ -46,6 +47,28 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
             </plugin>
+            <plugin>
+                <!-- sets ${org.mockito:mockito-core:jar} for the surefire argLine below -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.11.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <!-- load mockito's inline mock maker as an agent; JDK 21+ restricts dynamic agent loading -->
+                    <argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <repositories>
@@ -60,6 +83,17 @@
             </snapshots>
         </repository>
     </repositories>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -88,6 +122,13 @@
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>oa4mp-client-api</artifactId>
             <version>3.3</version>
+            <exclusions>
+                <!-- oa4mp leaks junit at compile scope -->
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- OAuth 2.0 client -->
@@ -97,11 +138,16 @@
             <version>1.0.0</version>
         </dependency>
         
-        <!-- Mockito for unit testing -->
+        <!-- JUnit Jupiter and Mockito for unit testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>5.2.0</version>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         
