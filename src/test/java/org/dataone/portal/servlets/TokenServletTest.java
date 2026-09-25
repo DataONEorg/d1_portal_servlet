@@ -100,7 +100,8 @@ public class TokenServletTest {
     @Test
     public void testDoGet_exchangesKeycloakAccessToken() throws Exception {
         TestKeycloak keycloak = new TestKeycloak();
-        String accessToken = keycloak.sign(keycloak.accessTokenClaims().build()).serialize();
+        String accessToken = keycloak.sign(keycloak.accessTokenClaims()
+            .claim("scope", "openid profile email dataone:token-exchange").build()).serialize();
         when(request.getHeader("Authorization")).thenReturn("Bearer " + accessToken);
 
         tokenServlet(keycloak.provider()).doGet(request, response);
@@ -181,5 +182,35 @@ public class TokenServletTest {
 
         verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         assertTrue(body.toString().contains("Token exceeds maximum allowed length"));
+    }
+
+    @Test
+    public void testDoGet_rejectsAccessTokenWithoutExchangeScope() throws Exception {
+        TestKeycloak keycloak = new TestKeycloak();
+        String accessToken = keycloak.sign(keycloak.accessTokenClaims().build()).serialize();
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + accessToken);
+
+        tokenServlet(keycloak.provider()).doGet(request, response);
+
+        verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+        verify(response).setHeader("WWW-Authenticate",
+                                   "Bearer error=\"insufficient_scope\", scope=\"dataone:token-exchange\"");
+        assertTrue(body.toString().contains("\"message\":\"Insufficient scope\""), body.toString());
+        assertTrue(body.toString().contains("Required: 'dataone:token-exchange'"), body.toString());
+        assertEquals("", out.getContent());
+    }
+
+    @Test
+    public void testDoGet_exchangesWithoutScopeCheckWhenExchangeScopeIsEmpty() throws Exception {
+        TestKeycloak keycloak = new TestKeycloak();
+        KeycloakProvider provider = keycloak.provider();
+        provider.setExchangeScope("");
+        String accessToken = keycloak.sign(keycloak.accessTokenClaims().build()).serialize();
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + accessToken);
+
+        tokenServlet(provider).doGet(request, response);
+
+        Session session = TokenGenerator.getInstance().getSession(out.getContent());
+        assertEquals(TestKeycloak.ORCID, session.getSubject().getValue());
     }
 }

@@ -35,6 +35,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dataone.portal.TokenGenerator;
+import org.dataone.portal.oidc.InsufficientScopeException;
 import org.dataone.portal.oidc.KeycloakProvider;
 import org.dataone.portal.oidc.OidcResponses;
 import org.dataone.portal.session.PortalSession;
@@ -109,14 +110,33 @@ public class TokenServlet extends HttpServlet {
 	 */
 	private void exchangeAccessToken(KeycloakProvider provider, String accessToken,
 			HttpServletResponse response) throws IOException {
-		String jwt;
+		String subject;
+		String name;
 		try {
-			JWTClaimsSet claims = provider.validateAccessToken(accessToken);
-			jwt = TokenGenerator.getInstance().getJWT(provider.getSubject(claims),
-					KeycloakProvider.getName(claims));
+			JWTClaimsSet claims = provider.validateAccessToken(accessToken,
+					provider.getExchangeScope());
+			subject = provider.getSubject(claims);
+			name = KeycloakProvider.getName(claims);
+		} catch (InsufficientScopeException e) {
+			log.info("Rejecting Keycloak access token: " + e.getMessage());
+			response.setHeader("WWW-Authenticate", "Bearer error=\"insufficient_scope\", scope=\""
+					+ e.getRequiredScope() + "\"");
+			OidcResponses.writeError(response, HttpServletResponse.SC_FORBIDDEN,
+					OidcResponses.INSUFFICIENT_SCOPE, e.getMessage());
+			return;
 		} catch (Exception e) {
 			log.info("Rejecting Keycloak access token: " + e.getMessage());
 			rejectToken(response, OidcResponses.TOKEN_VALIDATION_FAILED, e.getMessage());
+			return;
+		}
+		
+		String jwt;
+		try {
+			jwt = TokenGenerator.getInstance().getJWT(subject, name);
+		} catch (Exception e) {
+			log.error("Could not create a DataONE token", e);
+			OidcResponses.writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+					OidcResponses.INTERNAL_ERROR, "Could not create a DataONE token");
 			return;
 		}
 		ServletOutputStream out = response.getOutputStream();

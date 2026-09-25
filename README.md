@@ -65,12 +65,14 @@ Authorization: Bearer <keycloak access token>
 |---|---|
 | `200`, body is a DataONE JWT | The access token is valid. The JWT's subject is the token's `keycloak.subject.claim` (`orcid` by default, the ORCID iD claim, as in dataone-auth). |
 | `401`, `WWW-Authenticate: Bearer error="invalid_token"`, JSON error body | The token names this portal's Keycloak issuer but isn't valid: bad signature, expired, wrong audience or authorized party, not an access token, missing the subject claim, or longer than 16 KB. |
+| `403`, `WWW-Authenticate: Bearer error="insufficient_scope", scope="dataone:token-exchange"`, JSON error body | The token is valid but wasn't granted the exchange scope. |
 
 A valid access token must:
 - be signed by the realm (RS256), with issuer `keycloak.issuer`;
 - be unexpired, with `typ` set to `Bearer`;
 - have an audience in `keycloak.token.exchange.audiences`;
-- if it has an authorized party (`azp`), have one from that list too.
+- if it has an authorized party (`azp`), have one from that list too;
+- carry the exchange scope, `keycloak.token.exchange.scope` (default `dataone:token-exchange`), in its `scope` claim. Request it at login (`/portal/login?scope=dataone:token-exchange`) or through `keycloak.scopes`.
 
 Bearer tokens from any other issuer (such as an existing DataONE JWT) are ignored, and the session is used as before. DataONE JWTs expire (18 hours by default); to renew, exchange a fresh Keycloak access token.
 
@@ -92,6 +94,7 @@ Settings are read from the file named by the `portal.properties.file` context pa
 | `keycloak.scopes` | Extra scopes this deployment always requests at login (comma or space separated) |
 | `keycloak.subject.claim` | Claim holding the DataONE subject (default `orcid`) |
 | `keycloak.token.exchange.audiences` | Clients whose access tokens may be exchanged (default: `keycloak.client.id`) |
+| `keycloak.token.exchange.scope` | Scope an access token needs to be exchanged (default `dataone:token-exchange`; empty turns the check off) |
 | `keycloak.register.accounts` | Register Keycloak users with the CN on login (default `true`) |
 
 For Keycloak logout to return to `target`, each target must also be allowed as a post-logout redirect URI on the Keycloak client.
