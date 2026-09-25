@@ -7,7 +7,7 @@ The DataONE portal webapp (`portal.war`), deployed on Coordinating Nodes at `/po
 | Endpoint | Purpose |
 |---|---|
 | `GET /portal/oauth?action=start&target=<url>` | Log in directly with ORCID. After login the browser returns to `target`. |
-| `GET /portal/login?target=<url>` | Log in through Keycloak (OpenID Connect, with ORCID as Keycloak's identity provider). `target` is optional. |
+| `GET /portal/login?target=<url>&scope=<scopes>` | Log in through Keycloak (OpenID Connect, with ORCID as Keycloak's identity provider). Both parameters are optional (see [Scopes](#scopes)). |
 | `GET /portal/authorize` | Keycloak's login callback. With a `target`, redirects there; without one, returns the Keycloak tokens as JSON (below). |
 | `POST /portal/refresh` | Exchange a Keycloak refresh token for new tokens (below). |
 | `GET /portal/token` | Get a DataONE JWT for the logged-in session, or in exchange for a Keycloak access token (below). |
@@ -20,6 +20,18 @@ The DataONE portal webapp (`portal.war`), deployed on Coordinating Nodes at `/po
 - Token responses (from `/authorize` without a `target`, and from `/refresh`):
   `{"message": "...", "token": {"access_token": "...", "refresh_token": "..."}}`
 - Errors: `{"error": {"message": "...", "details": "..."}}`. The status is 400 for a bad or missing parameter, 401 for an invalid token, code or refresh token, 502 when Keycloak can't be reached, and 503 when Keycloak isn't configured.
+
+## Scopes
+
+Keycloak access tokens carry the scopes a user was granted, and services check for their own scopes when making authorization decisions. `/portal/login` requests:
+
+1. the base scopes (`keycloak.scope`, default `openid profile email`);
+2. the deployment's extra scopes (`keycloak.scopes`), like the scopes a dataone-auth service passes to `create_client`;
+3. the login's `scope` parameter: a space-separated list, e.g. `scope=dataone:token-exchange ogdc:workflow:execute` for a token used with several services.
+
+Duplicates are dropped. The portal keeps no list of allowed scopes: Keycloak decides which scopes exist and which the user may have, and the token's `scope` claim shows what was granted. The portal only rejects a `scope` parameter that isn't valid OAuth scope syntax or is over 2048 characters.
+
+If Keycloak refuses the login (for example `invalid_scope` or `access_denied`), a login with a `target` returns there with Keycloak's code in the `error` parameter. Without a `target`, the code starts the JSON error's `details`.
 
 ## Keycloak tokens and refresh
 
@@ -76,7 +88,8 @@ Settings are read from the file named by the `portal.properties.file` context pa
 | `keycloak.server.metadata.url` | The realm's `.well-known/openid-configuration` URL, as an alternative to the issuer. Keycloak login and token exchange are off while neither is set. |
 | `keycloak.client.id`, `keycloak.client.secret` | Confidential client for portal logins (default client `d1-confidential`) |
 | `keycloak.redirect.uri` | This deployment's login callback URL. It must reach this portal's `/authorize` and be registered as a redirect URI on the Keycloak client. |
-| `keycloak.scope` | Scopes requested at login (default `openid profile email`) |
+| `keycloak.scope` | Base scopes requested at login (default `openid profile email`) |
+| `keycloak.scopes` | Extra scopes this deployment always requests at login (comma or space separated) |
 | `keycloak.subject.claim` | Claim holding the DataONE subject (default `orcid`) |
 | `keycloak.token.exchange.audiences` | Clients whose access tokens may be exchanged (default: `keycloak.client.id`) |
 | `keycloak.register.accounts` | Register Keycloak users with the CN on login (default `true`) |

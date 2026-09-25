@@ -62,6 +62,8 @@ public class KeycloakOidcServletTest {
         JWTClaimsSet idTokenClaims;
         /** if set, the token endpoint answers with this error */
         TokenErrorResponse tokenError;
+        /** the access token the token endpoint returns */
+        BearerAccessToken accessToken = new BearerAccessToken("keycloak-access-token", 300, null);
         TokenRequest tokenRequest;
         String registered;
 
@@ -84,7 +86,7 @@ public class KeycloakOidcServletTest {
             try {
                 return new OIDCTokenResponse(new OIDCTokens(
                     keycloak.sign(idTokenClaims),
-                    new BearerAccessToken("keycloak-access-token", 300, null),
+                    accessToken,
                     new RefreshToken("keycloak-refresh-token")));
             } catch (Exception e) {
                 throw new IllegalStateException(e);
@@ -119,9 +121,14 @@ public class KeycloakOidcServletTest {
     }
 
     private HttpServletRequest loginRequest(String target) {
+        return loginRequest(target, null);
+    }
+
+    private HttpServletRequest loginRequest(String target, String scope) {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getServletPath()).thenReturn(KeycloakOidcServlet.LOGIN_PATH);
         when(request.getParameter("target")).thenReturn(target);
+        when(request.getParameter("scope")).thenReturn(scope);
         when(request.getSession(true)).thenReturn(httpSession);
         return request;
     }
@@ -149,8 +156,12 @@ public class KeycloakOidcServletTest {
 
     /** Run the login step and return the parameters sent to Keycloak */
     private Map<String, String> login(String target) throws Exception {
+        return login(target, null);
+    }
+
+    private Map<String, String> login(String target, String scope) throws Exception {
         HttpServletResponse loginResponse = mock(HttpServletResponse.class);
-        servlet.doGet(loginRequest(target), loginResponse);
+        servlet.doGet(loginRequest(target, scope), loginResponse);
         ArgumentCaptor<String> location = ArgumentCaptor.forClass(String.class);
         verify(loginResponse).sendRedirect(location.capture());
         assertTrue(location.getValue().startsWith(TestKeycloak.AUTHORIZATION_ENDPOINT + "?"));
@@ -305,13 +316,13 @@ public class KeycloakOidcServletTest {
     }
 
     @Test
-    public void testAuthorize_keycloakErrorRedirectsWithError() throws Exception {
+    public void testAuthorize_keycloakErrorRedirectsWithItsErrorCode() throws Exception {
         Map<String, String> params = login(TARGET);
 
         servlet.doGet(authorizeRequest("error=access_denied&state=" + params.get("state")),
                       response);
 
-        verify(response).sendRedirect(TARGET + "?error=login_failed");
+        verify(response).sendRedirect(TARGET + "?error=access_denied");
         assertNull(servlet.tokenRequest);
     }
 
@@ -325,5 +336,73 @@ public class KeycloakOidcServletTest {
         verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         assertEquals("Authorization failed", error().get("message"));
         assertNull(httpSession.getAttribute(PortalSession.ACCESS_TOKEN));
+    }
+
+    @Test
+    public void testLogin_requestsConfiguredAndRequestedScopes() throws Exception {
+        servlet.provider.setExtraScopes(java.util.Arrays.asList("dataone:token-exchange"));
+
+        Map<String, String> params = login(TARGET, "ogdc:workflow:execute vegbank:user");
+
+        assertEquals("openid profile email dataone:token-exchange ogdc:workflow:execute "
+            + "vegbank:user", params.get("scope"));
+    }
+
+    @Test
+    public void testLogin_rejectsInvalidScopeParameter() throws Exception {
+        servlet.doGet(loginRequest(TARGET, "bad\"scope"), response);
+
+        verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        assertTrue(((String) error().get("details")).contains("Invalid scope"));
+        verify(response, never()).sendRedirect(anyString());
+    }
+
+    @Test
+    public void testAuthorize_invalidScopeFromKeycloakIsPassedOn() throws Exception {
+        Map<String, String> params = login(TARGET, "no:such-scope");
+
+        servlet.doGet(authorizeRequest("error=invalid_scope&state=" + params.get("state")),
+                      response);
+
+        verify(response).sendRedirect(TARGET + "?error=invalid_scope");
+    }
+
+    @Test
+    public void testAuthorize_invalidScopeWithoutTargetIsInJsonDetails() throws Exception {
+        Map<String, String> params = login(null, "no:such-scope");
+
+        servlet.doGet(authorizeRequest("error=invalid_scope&state=" + params.get("state")),
+                      response);
+
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        assertEquals("Authorization failed", error().get("message"));
+        assertTrue(((String) error().get("details")).startsWith("invalid_scope"));
+    }
+
+    @Test
+    public void testAuthorize_recordsGrantedScopes() throws Exception {
+        Map<String, String> params = login(TARGET, "dataone:token-exchange");
+        servlet.idTokenClaims = keycloak.idTokenClaims(params.get("nonce")).build();
+        servlet.accessToken = new BearerAccessToken("keycloak-access-token", 300,
+            com.nimbusds.oauth2.sdk.Scope.parse("openid profile email dataone:token-exchange"));
+
+        servlet.doGet(authorizeRequest("code=the-code&state=" + params.get("state")), response);
+
+        assertEquals("openid profile email dataone:token-exchange",
+                     httpSession.getAttribute(PortalSession.SCOPE));
+    }
+
+    @Test
+    public void testAuthorize_recordsGrantedScopesFromAccessTokenClaim() throws Exception {
+        Map<String, String> params = login(TARGET);
+        servlet.idTokenClaims = keycloak.idTokenClaims(params.get("nonce")).build();
+        String jwt = keycloak.sign(keycloak.accessTokenClaims()
+            .claim("scope", "openid profile email vegbank:user").build()).serialize();
+        servlet.accessToken = new BearerAccessToken(jwt, 300, null);
+
+        servlet.doGet(authorizeRequest("code=the-code&state=" + params.get("state")), response);
+
+        assertEquals("openid profile email vegbank:user",
+                     httpSession.getAttribute(PortalSession.SCOPE));
     }
 }

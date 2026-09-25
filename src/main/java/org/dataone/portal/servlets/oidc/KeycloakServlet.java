@@ -62,14 +62,15 @@ public abstract class KeycloakServlet extends HttpServlet {
                 : ": " + error.getDescription());
             if (OAuth2Error.INVALID_CLIENT.getCode().equals(error.getCode())) {
                 throw new OidcException(HttpServletResponse.SC_UNAUTHORIZED,
-                                        OidcResponses.CLIENT_AUTHENTICATION_FAILED, details);
+                                        OidcResponses.CLIENT_AUTHENTICATION_FAILED, details,
+                                        error.getCode());
             }
             if (OAuth2Error.INVALID_GRANT.getCode().equals(error.getCode())) {
                 throw new OidcException(HttpServletResponse.SC_UNAUTHORIZED, grantFailedMessage,
-                                        details);
+                                        details, error.getCode());
             }
             throw new OidcException(HttpServletResponse.SC_UNAUTHORIZED,
-                                    OidcResponses.OAUTH2_ERROR, details);
+                                    OidcResponses.OAUTH2_ERROR, details, error.getCode());
         }
         return tokenResponse.toSuccessResponse().getTokens();
     }

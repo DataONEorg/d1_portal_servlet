@@ -15,6 +15,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -63,12 +64,19 @@ import com.nimbusds.openid.connect.sdk.validators.IDTokenValidator;
  * <li>{@code keycloak.redirect.uri}: this deployment's login callback URL, which must be
  * registered as a redirect URI on the client and must reach the portal's /authorize
  * servlet.</li>
- * <li>{@code keycloak.scope}: scopes requested at login (default {@code openid profile email}).</li>
+ * <li>{@code keycloak.scope}: the base scopes requested at login (default
+ * {@code openid profile email}).</li>
+ * <li>{@code keycloak.scopes}: extra scopes this deployment always requests at login, like the
+ * scopes a dataone-auth service passes to {@code create_client}. A login can ask for more with
+ * the {@code scope} parameter; Keycloak decides which exist and which the user may have.</li>
  * <li>{@code keycloak.subject.claim}: the claim holding the user's DataONE subject (default
  * {@code orcid}, the ORCID iD claim the realm's profile scope adds, as dataone-auth uses).</li>
  * <li>{@code keycloak.token.exchange.audiences}: comma-separated clients whose access tokens may
  * be exchanged for a DataONE JWT (default: the client id). The token's audience must include
  * one of them, and its authorized party (azp), if present, must be one of them.</li>
+ * <li>{@code keycloak.token.exchange.scope}: the scope an access token must carry to be
+ * exchanged for a DataONE JWT (default {@code dataone:token-exchange}). Set it to an empty value
+ * to exchange tokens without a scope check.</li>
  * </ul>
  * Endpoints are discovered from the provider metadata on first use, and the realm's signing keys
  * are fetched and cached from its JWKS endpoint.
@@ -82,12 +90,21 @@ public class KeycloakProvider {
     public static final String CLIENT_SECRET = "keycloak.client.secret";
     public static final String REDIRECT_URI = "keycloak.redirect.uri";
     public static final String SCOPE = "keycloak.scope";
+    public static final String SCOPES = "keycloak.scopes";
     public static final String SUBJECT_CLAIM = "keycloak.subject.claim";
     public static final String EXCHANGE_AUDIENCES = "keycloak.token.exchange.audiences";
+    public static final String EXCHANGE_SCOPE = "keycloak.token.exchange.scope";
 
     public static final String DEFAULT_CLIENT_ID = "d1-confidential";
     public static final String DEFAULT_SCOPE = "openid profile email";
     public static final String DEFAULT_SUBJECT_CLAIM = "orcid";
+    public static final String DEFAULT_EXCHANGE_SCOPE = "dataone:token-exchange";
+
+    /** Longest scope parameter accepted at login */
+    public static final int MAX_SCOPE_LENGTH = 2048;
+
+    /** An OAuth 2.0 scope token (RFC 6749 section 3.3) */
+    private static final Pattern SCOPE_TOKEN = Pattern.compile("[\\x21\\x23-\\x5B\\x5D-\\x7E]+");
 
     /** Keycloak marks access tokens with typ=Bearer (ID tokens have typ=ID) */
     private static final String ACCESS_TOKEN_TYPE = "Bearer";
@@ -110,6 +127,8 @@ public class KeycloakProvider {
     private final String scope;
     private final String subjectClaim;
     private final Set<String> exchangeAudiences;
+    private List<String> extraScopes = new ArrayList<String>();
+    private String exchangeScope = DEFAULT_EXCHANGE_SCOPE;
 
     private volatile OIDCProviderMetadata metadata;
     private volatile JWKSource<SecurityContext> jwkSource;
@@ -152,7 +171,7 @@ public class KeycloakProvider {
         if (audiences.isEmpty()) {
             audiences.add(clientId);
         }
-        return new KeycloakProvider(Settings.getConfiguration().getString(ISSUER),
+        KeycloakProvider provider = new KeycloakProvider(Settings.getConfiguration().getString(ISSUER),
                                     setting(METADATA_URL, secrets, "server_metadata_url", null),
                                     clientId,
                                     setting(CLIENT_SECRET, secrets, "client_secret", null),
@@ -161,6 +180,14 @@ public class KeycloakProvider {
                                     Settings.getConfiguration()
                                         .getString(SUBJECT_CLAIM, DEFAULT_SUBJECT_CLAIM),
                                     audiences);
+        List<String> extra = new ArrayList<String>();
+        for (String value : Settings.getConfiguration().getStringArray(SCOPES)) {
+            extra.addAll(splitScopes(value.replace(',', ' ')));
+        }
+        provider.setExtraScopes(extra);
+        provider.setExchangeScope(
+            Settings.getConfiguration().getString(EXCHANGE_SCOPE, DEFAULT_EXCHANGE_SCOPE));
+        return provider;
     }
 
     /**
@@ -274,6 +301,86 @@ public class KeycloakProvider {
     }
 
     /**
+     * Set the extra scopes requested at every login ({@code keycloak.scopes}).
+     */
+    public void setExtraScopes(List<String> extraScopes) {
+        this.extraScopes = new ArrayList<String>(extraScopes);
+    }
+
+    /**
+     * Set the scope required for token exchange; null or empty means no scope is required.
+     */
+    public void setExchangeScope(String exchangeScope) {
+        this.exchangeScope = trimToNull(exchangeScope);
+    }
+
+    /**
+     * @return the scope required for token exchange, or null if none is required
+     */
+    public String getExchangeScope() {
+        return exchangeScope;
+    }
+
+    /**
+     * The scopes to request at login: the base scopes, then the configured extra scopes, then the
+     * requested ones, without duplicates (as dataone-auth merges its default and service scopes).
+     * @param requested the login's {@code scope} parameter (space separated), or null
+     * @throws IllegalArgumentException if the requested scopes are too long or aren't valid
+     *         OAuth scope tokens
+     */
+    public List<String> getLoginScopes(String requested) {
+        if (requested != null && requested.length() > MAX_SCOPE_LENGTH) {
+            throw new IllegalArgumentException("scope exceeds maximum allowed length");
+        }
+        LinkedHashSet<String> scopes = new LinkedHashSet<String>(splitScopes(scope));
+        scopes.addAll(extraScopes);
+        for (String value : splitScopes(requested)) {
+            if (!SCOPE_TOKEN.matcher(value).matches()) {
+                throw new IllegalArgumentException("Invalid scope: " + value);
+            }
+            scopes.add(value);
+        }
+        return new ArrayList<String>(scopes);
+    }
+
+    /**
+     * @return the space-separated scopes in a string, or an empty list
+     */
+    public static List<String> splitScopes(String value) {
+        List<String> scopes = new ArrayList<String>();
+        if (value != null) {
+            for (String part : value.trim().split("\\s+")) {
+                if (!part.isEmpty()) {
+                    scopes.add(part);
+                }
+            }
+        }
+        return scopes;
+    }
+
+    /**
+     * @return the scopes in a token's {@code scope} claim
+     */
+    public static List<String> getScopes(JWTClaimsSet claims) throws ParseException {
+        return splitScopes(claims.getStringClaim("scope"));
+    }
+
+    /**
+     * Check that a token's claims include a scope, as dataone-auth's require_scope does.
+     * @param requiredScope the scope to require, or null to require none
+     */
+    public static void requireScope(JWTClaimsSet claims, String requiredScope)
+        throws ParseException, InsufficientScopeException {
+        if (requiredScope == null) {
+            return;
+        }
+        List<String> scopes = getScopes(claims);
+        if (!scopes.contains(requiredScope)) {
+            throw new InsufficientScopeException(requiredScope, scopes);
+        }
+    }
+
+    /**
      * @return the provider's metadata (endpoints), fetched on first use from the metadata URL,
      *         or from the issuer's .well-known/openid-configuration
      */
@@ -376,6 +483,20 @@ public class KeycloakProvider {
         if (azp != null && !exchangeAudiences.contains(azp)) {
             throw new BadJWTException("Invalid authorized party (azp): " + azp);
         }
+        return claims;
+    }
+
+    /**
+     * Validate a Keycloak access token as {@link #validateAccessToken(String)} does, and require a
+     * scope.
+     * @param requiredScope the scope the token must carry, or null to require none
+     * @throws InsufficientScopeException if the token is valid but lacks the scope
+     */
+    public JWTClaimsSet validateAccessToken(String token, String requiredScope)
+        throws ParseException, BadJOSEException, JOSEException, GeneralException, IOException,
+        InsufficientScopeException {
+        JWTClaimsSet claims = validateAccessToken(token);
+        requireScope(claims, requiredScope);
         return claims;
     }
 

@@ -163,4 +163,61 @@ public class KeycloakProviderTest {
             Settings.getConfiguration().clearProperty(KeycloakProvider.CLIENT_ID);
         }
     }
+
+    @Test
+    public void testGetLoginScopes_mergesBaseConfiguredAndRequestedWithoutDuplicates() {
+        provider.setExtraScopes(Arrays.asList("dataone:token-exchange", "openid"));
+
+        assertEquals(Arrays.asList("openid", "profile", "email", "dataone:token-exchange"),
+                     provider.getLoginScopes(null));
+        assertEquals(Arrays.asList("openid", "profile", "email", "dataone:token-exchange",
+                                   "ogdc:workflow:execute", "vegbank:user"),
+                     provider.getLoginScopes(" ogdc:workflow:execute  vegbank:user email "));
+    }
+
+    @Test
+    public void testGetLoginScopes_rejectsInvalidOrOverlongScopes() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> provider.getLoginScopes("good \"quoted\""));
+        assertThrows(IllegalArgumentException.class,
+                     () -> provider.getLoginScopes("back\\slash"));
+        assertThrows(IllegalArgumentException.class, () -> provider
+            .getLoginScopes("s".repeat(KeycloakProvider.MAX_SCOPE_LENGTH + 1)));
+    }
+
+    @Test
+    public void testValidateAccessToken_requiresScope() throws Exception {
+        String withScope = token(keycloak.accessTokenClaims()
+            .claim("scope", "openid ogdc:workflow:execute").build());
+        String withoutScope = token(keycloak.accessTokenClaims().build());
+
+        assertEquals(TestKeycloak.ORCID, provider.getSubject(
+            provider.validateAccessToken(withScope, "ogdc:workflow:execute")));
+        InsufficientScopeException e = assertThrows(InsufficientScopeException.class,
+            () -> provider.validateAccessToken(withoutScope, "ogdc:workflow:execute"));
+        assertEquals("ogdc:workflow:execute", e.getRequiredScope());
+        assertTrue(e.getMessage().contains("Available: [openid, profile, email]"), e.getMessage());
+        // no required scope means only the token itself is checked
+        provider.validateAccessToken(withoutScope, null);
+    }
+
+    @Test
+    public void testFromSettings_scopesAndExchangeScope() {
+        Settings.getConfiguration().setProperty(KeycloakProvider.SCOPES,
+                                                "dataone:token-exchange, vegbank:user");
+        try {
+            KeycloakProvider configured = KeycloakProvider.fromSettings();
+
+            assertEquals(Arrays.asList("openid", "profile", "email", "dataone:token-exchange",
+                                       "vegbank:user"),
+                         configured.getLoginScopes(null));
+            assertEquals("dataone:token-exchange", configured.getExchangeScope());
+
+            Settings.getConfiguration().setProperty(KeycloakProvider.EXCHANGE_SCOPE, "");
+            assertEquals(null, KeycloakProvider.fromSettings().getExchangeScope());
+        } finally {
+            Settings.getConfiguration().clearProperty(KeycloakProvider.SCOPES);
+            Settings.getConfiguration().clearProperty(KeycloakProvider.EXCHANGE_SCOPE);
+        }
+    }
 }

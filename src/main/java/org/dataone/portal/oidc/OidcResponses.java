@@ -26,6 +26,7 @@ public class OidcResponses {
     public static final String CLIENT_AUTHENTICATION_FAILED = "OIDC client authentication failed";
     public static final String AUTHORIZATION_FAILED = "Authorization failed";
     public static final String OAUTH2_ERROR = "An OAuth2 error occurred";
+    public static final String INSUFFICIENT_SCOPE = "Insufficient scope";
     public static final String PROVIDER_UNAVAILABLE = "Failed to reach the OIDC provider";
     public static final String NOT_CONFIGURED = "OIDC login is not configured";
     public static final String INTERNAL_ERROR = "Internal authentication error";

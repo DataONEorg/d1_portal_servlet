@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -19,6 +20,7 @@ import org.dataone.portal.servlets.AccountRegistration;
 import org.dataone.portal.servlets.RedirectTargets;
 import org.dataone.portal.session.PortalSession;
 
+import com.nimbusds.jwt.JWTParser;
 import com.nimbusds.oauth2.sdk.AuthorizationCode;
 import com.nimbusds.oauth2.sdk.AuthorizationCodeGrant;
 import com.nimbusds.oauth2.sdk.ErrorObject;
@@ -42,8 +44,11 @@ import com.nimbusds.openid.connect.sdk.token.OIDCTokens;
  * Login through Keycloak (OpenID Connect authorization code flow with PKCE), alongside the direct
  * ORCID login in OrcidOAuthServlet. The endpoint names match the Python dataone-auth package.
  * <ul>
- * <li>{@code GET /login?target=<url>} sends the browser to Keycloak; {@code target} is
- * optional.</li>
+ * <li>{@code GET /login?target=<url>&scope=<scopes>} sends the browser to Keycloak. Both
+ * parameters are optional. {@code scope} is a space-separated list of extra scopes (for example
+ * service scopes, or {@code dataone:token-exchange} to allow exchanging the access token at
+ * /token), requested along with the configured ones. Keycloak decides which scopes exist and
+ * which the user may have.</li>
  * <li>{@code GET /authorize?code=...&state=...} is the callback. Its URL is configured with
  * {@code keycloak.redirect.uri} and registered on the Keycloak client for each deployment.</li>
  * </ul>
@@ -103,6 +108,16 @@ public class KeycloakOidcServlet extends KeycloakServlet {
             return;
         }
 
+        // which scopes to ask for: configured ones plus any the caller requests
+        List<String> scopes;
+        try {
+            scopes = provider.getLoginScopes(request.getParameter("scope"));
+        } catch (IllegalArgumentException e) {
+            OidcResponses.writeError(response, HttpServletResponse.SC_BAD_REQUEST,
+                                     OidcResponses.MISSING_PARAMETER, e.getMessage());
+            return;
+        }
+
         State state = new State();
         Nonce nonce = new Nonce();
         CodeVerifier verifier = new CodeVerifier();
@@ -114,7 +129,7 @@ public class KeycloakOidcServlet extends KeycloakServlet {
         session.setLoginSecrets(nonce.getValue(), verifier.getValue());
 
         AuthenticationRequest authRequest = new AuthenticationRequest.Builder(
-            new ResponseType(ResponseType.Value.CODE), Scope.parse(provider.getScope()),
+            new ResponseType(ResponseType.Value.CODE), Scope.parse(scopes),
             provider.getClientID(), provider.getRedirectURI())
             .endpointURI(provider.getMetadata().getAuthorizationEndpointURI())
             .state(state)
@@ -160,8 +175,11 @@ public class KeycloakOidcServlet extends KeycloakServlet {
             OidcException error = toOidcException(e);
             log.error("Keycloak login failed", e);
             if (target != null) {
-                // send the browser back to where it started (checked in handleLogin)
-                response.sendRedirect(withParameter(target, "error", "login_failed"));
+                // send the browser back to where it started (checked in handleLogin), with
+                // Keycloak's error code if there is one (e.g. invalid_scope, access_denied)
+                String code = error.getOAuthError() != null ? error.getOAuthError()
+                    : "login_failed";
+                response.sendRedirect(withParameter(target, "error", code));
             } else {
                 writeError(response, error);
             }
@@ -189,7 +207,8 @@ public class KeycloakOidcServlet extends KeycloakServlet {
             throw new OidcException(HttpServletResponse.SC_UNAUTHORIZED,
                                     OidcResponses.AUTHORIZATION_FAILED,
                                     error.getCode() + (error.getDescription() == null ? ""
-                                        : ": " + error.getDescription()));
+                                        : ": " + error.getDescription()),
+                                    error.getCode());
         }
         AuthorizationCode code = ((AuthenticationSuccessResponse) authResponse)
             .getAuthorizationCode();
@@ -215,8 +234,7 @@ public class KeycloakOidcServlet extends KeycloakServlet {
         session.setAuthSource(PortalSession.SOURCE_KEYCLOAK);
         session.setAccessToken(tokens.getAccessToken().getValue());
         session.setExpiresIn(tokens.getAccessToken().getLifetime());
-        session.setScope(tokens.getAccessToken().getScope() == null ? null
-            : tokens.getAccessToken().getScope().toString());
+        session.setScope(getGrantedScope(tokens));
         RefreshToken refreshToken = tokens.getRefreshToken();
         session.setRefreshToken(refreshToken == null ? null : refreshToken.getValue());
         session.setIdToken(oidcTokens.getIDTokenString());
@@ -226,6 +244,24 @@ public class KeycloakOidcServlet extends KeycloakServlet {
         registerAccount(userId, idClaims.getStringClaim("given_name"),
                         idClaims.getStringClaim("family_name"));
         return tokens;
+    }
+
+    /**
+     * @return the scopes Keycloak granted, from the token response or else from the access token's
+     *         scope claim (the token response may leave them out when they're as requested)
+     */
+    private static String getGrantedScope(Tokens tokens) {
+        if (tokens.getAccessToken().getScope() != null) {
+            return tokens.getAccessToken().getScope().toString();
+        }
+        try {
+            // the token came straight from Keycloak's token endpoint; read it only to record
+            // what was granted
+            return JWTParser.parse(tokens.getAccessToken().getValue()).getJWTClaimsSet()
+                .getStringClaim("scope");
+        } catch (java.text.ParseException e) {
+            return null;
+        }
     }
 
     /**

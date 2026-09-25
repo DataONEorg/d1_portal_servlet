@@ -9,15 +9,24 @@ public class OidcException extends Exception {
 
     private final int status;
 
+    private final String message;
+    private final String details;
+    private final String oauthError;
+
     public OidcException(int status, String message, String details) {
+        this(status, message, details, null);
+    }
+
+    /**
+     * @param oauthError the OAuth error code from Keycloak (e.g. invalid_scope), if any
+     */
+    public OidcException(int status, String message, String details, String oauthError) {
         super(message + (details == null ? "" : ": " + details));
         this.status = status;
         this.message = message;
         this.details = details;
+        this.oauthError = oauthError;
     }
-
-    private final String message;
-    private final String details;
 
     public int getStatus() {
         return status;
@@ -30,5 +39,10 @@ public class OidcException extends Exception {
 
     public String getDetails() {
         return details;
+    }
+
+    /** @return the OAuth error code from Keycloak (e.g. invalid_scope), or null */
+    public String getOAuthError() {
+        return oauthError;
     }
 }
