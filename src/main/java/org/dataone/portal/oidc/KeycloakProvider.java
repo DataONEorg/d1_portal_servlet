@@ -64,9 +64,9 @@ import com.nimbusds.openid.connect.sdk.validators.IDTokenValidator;
  * <li>{@code keycloak.redirect.uri}: this deployment's login callback URL, which must be
  * registered as a redirect URI on the client and must reach the portal's /authorize
  * servlet.</li>
- * <li>{@code keycloak.scope}: the base scopes requested at login (default
+ * <li>{@code keycloak.scope.base}: the base scopes requested at login (default
  * {@code openid profile email}).</li>
- * <li>{@code keycloak.scopes}: extra scopes this deployment always requests at login, like the
+ * <li>{@code keycloak.scope.extra}: extra scopes this deployment always requests at login, like the
  * scopes a dataone-auth service passes to {@code create_client}. A login can ask for more with
  * the {@code scope} parameter; Keycloak decides which exist and which the user may have.</li>
  * <li>{@code keycloak.subject.claim}: the claim holding the user's DataONE subject (default
@@ -89,8 +89,8 @@ public class KeycloakProvider {
     public static final String CLIENT_ID = "keycloak.client.id";
     public static final String CLIENT_SECRET = "keycloak.client.secret";
     public static final String REDIRECT_URI = "keycloak.redirect.uri";
-    public static final String SCOPE = "keycloak.scope";
-    public static final String SCOPES = "keycloak.scopes";
+    public static final String SCOPE_BASE = "keycloak.scope.base";
+    public static final String SCOPE_EXTRA = "keycloak.scope.extra";
     public static final String SUBJECT_CLAIM = "keycloak.subject.claim";
     public static final String EXCHANGE_AUDIENCES = "keycloak.token.exchange.audiences";
     public static final String EXCHANGE_SCOPE = "keycloak.token.exchange.scope";
@@ -176,12 +176,12 @@ public class KeycloakProvider {
                                     clientId,
                                     setting(CLIENT_SECRET, secrets, "client_secret", null),
                                     Settings.getConfiguration().getString(REDIRECT_URI),
-                                    Settings.getConfiguration().getString(SCOPE, DEFAULT_SCOPE),
+                                    Settings.getConfiguration().getString(SCOPE_BASE, DEFAULT_SCOPE),
                                     Settings.getConfiguration()
                                         .getString(SUBJECT_CLAIM, DEFAULT_SUBJECT_CLAIM),
                                     audiences);
         List<String> extra = new ArrayList<String>();
-        for (String value : Settings.getConfiguration().getStringArray(SCOPES)) {
+        for (String value : Settings.getConfiguration().getStringArray(SCOPE_EXTRA)) {
             extra.addAll(splitScopes(value.replace(',', ' ')));
         }
         provider.setExtraScopes(extra);
@@ -301,7 +301,7 @@ public class KeycloakProvider {
     }
 
     /**
-     * Set the extra scopes requested at every login ({@code keycloak.scopes}).
+     * Set the extra scopes requested at every login ({@code keycloak.scope.extra}).
      */
     public void setExtraScopes(List<String> extraScopes) {
         this.extraScopes = new ArrayList<String>(extraScopes);

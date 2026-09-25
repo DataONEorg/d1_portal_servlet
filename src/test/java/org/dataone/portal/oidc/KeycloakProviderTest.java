@@ -203,7 +203,7 @@ public class KeycloakProviderTest {
 
     @Test
     public void testFromSettings_scopesAndExchangeScope() {
-        Settings.getConfiguration().setProperty(KeycloakProvider.SCOPES,
+        Settings.getConfiguration().setProperty(KeycloakProvider.SCOPE_EXTRA,
                                                 "dataone:token-exchange, vegbank:user");
         try {
             KeycloakProvider configured = KeycloakProvider.fromSettings();
@@ -216,7 +216,7 @@ public class KeycloakProviderTest {
             Settings.getConfiguration().setProperty(KeycloakProvider.EXCHANGE_SCOPE, "");
             assertEquals(null, KeycloakProvider.fromSettings().getExchangeScope());
         } finally {
-            Settings.getConfiguration().clearProperty(KeycloakProvider.SCOPES);
+            Settings.getConfiguration().clearProperty(KeycloakProvider.SCOPE_EXTRA);
             Settings.getConfiguration().clearProperty(KeycloakProvider.EXCHANGE_SCOPE);
         }
     }

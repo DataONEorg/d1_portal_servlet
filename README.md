@@ -25,8 +25,8 @@ The DataONE portal webapp (`portal.war`), deployed on Coordinating Nodes at `/po
 
 Keycloak access tokens carry the scopes a user was granted, and services check for their own scopes when making authorization decisions. `/portal/login` requests:
 
-1. the base scopes (`keycloak.scope`, default `openid profile email`);
-2. the deployment's extra scopes (`keycloak.scopes`), like the scopes a dataone-auth service passes to `create_client`;
+1. the base scopes (`keycloak.scope.base`, default `openid profile email`);
+2. the deployment's extra scopes (`keycloak.scope.extra`), like the scopes a dataone-auth service passes to `create_client`;
 3. the login's `scope` parameter: a space-separated list, e.g. `scope=dataone:token-exchange ogdc:workflow:execute` for a token used with several services.
 
 Duplicates are dropped. The portal keeps no list of allowed scopes: Keycloak decides which scopes exist and which the user may have, and the token's `scope` claim shows what was granted. The portal only rejects a `scope` parameter that isn't valid OAuth scope syntax or is over 2048 characters.
@@ -72,7 +72,7 @@ A valid access token must:
 - be unexpired, with `typ` set to `Bearer`;
 - have an audience in `keycloak.token.exchange.audiences`;
 - if it has an authorized party (`azp`), have one from that list too;
-- carry the exchange scope, `keycloak.token.exchange.scope` (default `dataone:token-exchange`), in its `scope` claim. Request it at login (`/portal/login?scope=dataone:token-exchange`) or through `keycloak.scopes`.
+- carry the exchange scope, `keycloak.token.exchange.scope` (default `dataone:token-exchange`), in its `scope` claim. Request it at login (`/portal/login?scope=dataone:token-exchange`) or through `keycloak.scope.extra`.
 
 Bearer tokens from any other issuer (such as an existing DataONE JWT) are ignored, and the session is used as before. DataONE JWTs expire (18 hours by default); to renew, exchange a fresh Keycloak access token.
 
@@ -90,8 +90,8 @@ Settings are read from the file named by the `portal.properties.file` context pa
 | `keycloak.server.metadata.url` | The realm's `.well-known/openid-configuration` URL, as an alternative to the issuer. Keycloak login and token exchange are off while neither is set. |
 | `keycloak.client.id`, `keycloak.client.secret` | Confidential client for portal logins (default client `d1-confidential`) |
 | `keycloak.redirect.uri` | This deployment's login callback URL. It must reach this portal's `/authorize` and be registered as a redirect URI on the Keycloak client. |
-| `keycloak.scope` | Base scopes requested at login (default `openid profile email`) |
-| `keycloak.scopes` | Extra scopes this deployment always requests at login (comma or space separated) |
+| `keycloak.scope.base` | Base scopes requested at login (default `openid profile email`) |
+| `keycloak.scope.extra` | Extra scopes this deployment always requests at login (comma or space separated) |
 | `keycloak.subject.claim` | Claim holding the DataONE subject (default `orcid`) |
 | `keycloak.token.exchange.audiences` | Clients whose access tokens may be exchanged (default: `keycloak.client.id`) |
 | `keycloak.token.exchange.scope` | Scope an access token needs to be exchanged (default `dataone:token-exchange`; empty turns the check off) |
